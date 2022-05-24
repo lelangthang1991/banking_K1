@@ -1,15 +1,28 @@
 package com.bstar.banking.model.response;
 
 
-public class RestResponse<T> extends CommonResponse<T> {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    public RestResponse(T body) {
-        super();
-        this.setBody(body);
+import java.time.Instant;
+import java.util.Date;
+import java.util.UUID;
+
+import static com.bstar.banking.utils.Utils.YYMMDDMMSSSSS;
+import static com.bstar.banking.utils.Utils.convertDateToString;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class RestResponse<T> {
+    private UUID UID;
+    private String date;
+    private T data;
+
+    public RestResponse(T data) {
+        this.UID = UUID.randomUUID();
+        this.date = convertDateToString(Date.from(Instant.now()), YYMMDDMMSSSSS);
+        this.data = data;
     }
-
-    public RestResponse(HeaderResponse header, T body) {
-        super(header, body);
-    }
-
 }

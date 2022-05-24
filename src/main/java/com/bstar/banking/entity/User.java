@@ -23,6 +23,7 @@ public class User {
     private String password;
     private String firstName;
     private String lastName;
+    private Integer role;
     private String verifyCode;
     private Date dob;
     private Integer gender;
@@ -35,10 +36,11 @@ public class User {
     private Date create_date;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "user")
-    List<Role> roles;
-
-    @JsonIgnore
     @OneToMany(mappedBy = "session")
     List<Session> sessions;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    List<Account> accounts;
+
 }
