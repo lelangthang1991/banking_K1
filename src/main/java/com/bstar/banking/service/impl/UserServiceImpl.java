@@ -7,7 +7,7 @@ import com.bstar.banking.jwt.JwtUtil;
 import com.bstar.banking.model.request.ForgotPasswordDTO;
 import com.bstar.banking.model.request.LoginDTO;
 import com.bstar.banking.model.response.ForgotPasswordResponse;
-import com.bstar.banking.model.response.LoginResponsePayload;
+import com.bstar.banking.model.response.LoginResponse;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.security.UserDetailsServiceImpl;
@@ -47,7 +47,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
     }
 
     @Override
-    public RestResponse<LoginResponsePayload> generateTokenAndRefreshToken(LoginDTO loginRequest) throws Exception {
+    public RestResponse<LoginResponse> generateTokenAndRefreshToken(LoginDTO loginRequest) throws Exception {
         String password = loginRequest.getPassword();
         String email = loginRequest.getEmail();
         authenticate(email, password);
@@ -58,7 +58,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
         Date refreshTokenExpire = jwtUtil.getExpirationDateFromToken(refreshToken);
         long refreshTokenExpireMillis = refreshTokenExpire.getTime();
-        LoginResponsePayload data = new LoginResponsePayload("200",
+        LoginResponse data = new LoginResponse("200",
                 GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS,
                 token,
                 tokenExpireMillis,
