@@ -3,7 +3,6 @@ package com.bstar.banking.controller;
 import com.bstar.banking.model.request.EmailRequest;
 import com.bstar.banking.model.request.ForgotPasswordDTO;
 import com.bstar.banking.model.request.LoginDTO;
-import com.bstar.banking.model.response.CommonResponse;
 import com.bstar.banking.model.response.ForgotPasswordResponse;
 import com.bstar.banking.model.response.LoginResponsePayload;
 import com.bstar.banking.model.response.RestResponse;
@@ -33,7 +32,7 @@ public class UserController {
 
     @PostMapping("/send-mail")
     public ResponseEntity<?> sendMail(@Valid @RequestBody EmailRequest mailer) throws MessagingException {
-        CommonResponse<ForgotPasswordResponse> response = mailerService.sendVerifyCode(mailer.getEmail());
+        RestResponse<ForgotPasswordResponse> response = mailerService.sendVerifyCode(mailer.getEmail());
         return ResponseEntity.ok(response);
     }
 

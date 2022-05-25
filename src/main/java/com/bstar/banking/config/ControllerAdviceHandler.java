@@ -1,7 +1,6 @@
 package com.bstar.banking.config;
 
 import com.bstar.banking.exception.BusinessException;
-import com.bstar.banking.model.response.HeaderResponse;
 import com.bstar.banking.model.response.RestResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +18,7 @@ public class ControllerAdviceHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<RestResponse<String>> handlerBusinessException(BusinessException be) {
         logger = LoggerFactory.getLogger("BusinessException");
-        HeaderResponse errorHeader = new HeaderResponse();
-        RestResponse<String> exceptionResponse = new RestResponse<String>(errorHeader, null);
+        RestResponse<String> exceptionResponse = new RestResponse<String>(null);
         logger.error(be.toString());
         return ResponseEntity.ok(exceptionResponse);
     }
@@ -28,9 +26,8 @@ public class ControllerAdviceHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse<String>> handlerException(Exception ex) {
         logger = LoggerFactory.getLogger("Exception");
-        HeaderResponse errorHeader = new HeaderResponse();
         String errorDetail = ex.getMessage();
-        RestResponse<String> exceptionResponse = new RestResponse<String>(errorHeader, errorDetail);
+        RestResponse<String> exceptionResponse = new RestResponse<String>(errorDetail);
         StringWriter sw = new StringWriter();
         ex.printStackTrace(new PrintWriter(sw));
         logger.error(sw.toString());

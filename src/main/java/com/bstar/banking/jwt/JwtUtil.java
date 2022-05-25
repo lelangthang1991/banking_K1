@@ -1,6 +1,5 @@
 package com.bstar.banking.jwt;
 
-import com.bstar.banking.entity.Role;
 import com.bstar.banking.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -13,10 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -112,17 +108,10 @@ public class JwtUtil {
                 .signWith(SignatureAlgorithm.HS512, secret).compact();
     }
 
-    public List<SimpleGrantedAuthority> getRolesFromToken(String token) {
+    public Collection<SimpleGrantedAuthority> getRolesFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
-        List<SimpleGrantedAuthority> roles = null;
-        Boolean role = claims.get(ROLES_CLAIMS, Boolean.class);
-        List<Role> getRolesFromClaims = (List<Role>) claims.get(ROLES_CLAIMS, Object.class);
-        if (role) {
-            roles = getRolesFromClaims.stream()
-                    .map(r -> new SimpleGrantedAuthority(r.getName()))
-                    .collect(Collectors.toList());
-        }
-        return roles;
+        Collection<SimpleGrantedAuthority> role = claims.get(ROLES_CLAIMS, Collection.class);
+        return role;
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

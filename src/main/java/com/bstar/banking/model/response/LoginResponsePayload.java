@@ -13,14 +13,14 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponsePayload implements Serializable {
-    private String status;
-    private String message;
+    private String statusCode;
+    private String statusDescription;
     private String accessToken;
-    private Date accessTokenExpire;
+    private Long accessTokenExpire;
     private String refreshToken;
-    private Date refreshTokenExpire;
+    private Long refreshTokenExpire;
     public LoginResponsePayload(String status, String message) {
-        this.status = status;
-        this.message = message;
+        this.statusCode = status;
+        this.statusDescription = message;
     }
 }

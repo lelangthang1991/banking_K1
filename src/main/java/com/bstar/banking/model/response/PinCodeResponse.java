@@ -2,13 +2,10 @@ package com.bstar.banking.model.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.http.HttpStatus;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class ErrorResponse {
-    private HttpStatus statusCode;
+public class PinCodeResponse {
+    private String statusCode;
     private String statusDescription;
 }

@@ -3,9 +3,8 @@ package com.bstar.banking.service.impl;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.MailDefault;
-import com.bstar.banking.model.response.CommonResponse;
 import com.bstar.banking.model.response.ForgotPasswordResponse;
-import com.bstar.banking.model.response.HeaderResponse;
+import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.MailerService;
 import lombok.RequiredArgsConstructor;
@@ -95,7 +94,7 @@ public class MailerServiceImpl implements MailerService {
     }
 
     @Override
-    public CommonResponse<ForgotPasswordResponse> sendVerifyCode(String email) {
+    public RestResponse<ForgotPasswordResponse> sendVerifyCode(String email) {
         try {
             String verifyCode = RandomStringUtils.randomAlphabetic(6);
             String text = "Your verify code: " + "<strong>" + verifyCode + "</strong>";
@@ -104,15 +103,13 @@ public class MailerServiceImpl implements MailerService {
             User user = userRepository.findById(mail.getTo()).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
             user.setVerifyCode(verifyCode);
             userRepository.save(user);
-            CommonResponse<ForgotPasswordResponse> CommonResponse = new CommonResponse<>();
-            CommonResponse.setHeader(new HeaderResponse());
-            CommonResponse.setBody(new ForgotPasswordResponse("200", SEND_MAIL_SUCCESS));
+            RestResponse<ForgotPasswordResponse> CommonResponse = new RestResponse<>();
+            CommonResponse.setData(new ForgotPasswordResponse("200", SEND_MAIL_SUCCESS, user.getEmail()));
             return CommonResponse;
         } catch (Exception e) {
             e.printStackTrace();
-            CommonResponse<ForgotPasswordResponse> CommonResponse = new CommonResponse<>();
-            CommonResponse.setHeader(new HeaderResponse());
-            CommonResponse.setBody(new ForgotPasswordResponse("404", e.getMessage()));
+            RestResponse<ForgotPasswordResponse> CommonResponse = new RestResponse<>();
+            CommonResponse.setData(new ForgotPasswordResponse("404", e.getMessage()));
             return CommonResponse;
         }
     }

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import static com.bstar.banking.common.UserString.GET_USER_EMAIL_NOT_FOUND;
 
@@ -27,13 +28,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         try {
             User user = customerDAO.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-            user.getRoles().forEach(role -> {
-                authorities.add(new SimpleGrantedAuthority(role.getName()));
-            });
             return new org.springframework.security.core.userdetails.User(user.getEmail(),
                     user.getPassword(),
-                    authorities);
+                    Collections.singleton(new SimpleGrantedAuthority(user.getRole().toString())));
        } catch (Exception e) {
              throw new UsernameNotFoundException(GET_USER_EMAIL_NOT_FOUND + email);
         }
