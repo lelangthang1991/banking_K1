@@ -1,19 +1,15 @@
-package com.bstar.banking.entity;
+package com.bstar.banking.model.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
 import java.util.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table
-public class Account {
-    @Id
+public class AccountDTO {
     private String accountNumber;
     private Double balance;
     private String pinCode;
@@ -23,8 +19,4 @@ public class Account {
     private String updatePerson;
     private Date updateDate;
     private Date createDate;
-
-    @ManyToOne
-    @JoinColumn(name = "user_email")
-    private User user;
 }
