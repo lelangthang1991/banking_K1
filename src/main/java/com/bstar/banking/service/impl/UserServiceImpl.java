@@ -58,7 +58,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
         Date refreshTokenExpire = jwtUtil.getExpirationDateFromToken(refreshToken);
         long refreshTokenExpireMillis = refreshTokenExpire.getTime();
-        LoginResponse data = new LoginResponse("200",
+        LoginResponse data = new LoginResponse("OK",
                 GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS,
                 token,
                 tokenExpireMillis,
@@ -76,7 +76,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
             userRepository.save(user);
             return new RestResponse<>(new ForgotPasswordResponse("OK", CHANGE_PASSWORD_SUCCESS));
         } else {
-            return new RestResponse<>(new ForgotPasswordResponse("404", VERIFY_PASSWORD_DOES_NOT_MATCH));
+            return new RestResponse<>(new ForgotPasswordResponse("INVALID_VERIFY_PASSWORD", VERIFY_PASSWORD_DOES_NOT_MATCH));
         }
     }
 }

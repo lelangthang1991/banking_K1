@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
     @Query("SELECT c FROM Account c WHERE (c.accountNumber LIKE '%' || ?1 || '%' OR c.accountType LIKE '%' || ?1 || '%'" +
@@ -18,5 +20,8 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     @Query("SELECT c FROM Account c WHERE (c.accountNumber LIKE '%' || ?1 || '%' OR c.accountType LIKE '%' || ?1 || '%'" +
             "OR c.createPerson LIKE '%' || ?1 || '%' OR c.updatePerson LIKE '%' || ?1 || '%') AND c.isActivated = ?2")
     Page<Account> findAccountByKeywordAndActivated(String keyword, boolean activated, Pageable pageable);
+
+    @Query("SELECT c FROM Account c WHERE c.user.email = ?1")
+    List<Account> findAccountByEmail(String email);
 
 }

@@ -28,9 +28,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         try {
             User user = customerDAO.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            return new org.springframework.security.core.userdetails.User(user.getEmail(),
-                    user.getPassword(),
-                    Collections.singleton(new SimpleGrantedAuthority(user.getRole().toString())));
+            return new UserDetailsImpl(user);
        } catch (Exception e) {
              throw new UsernameNotFoundException(GET_USER_EMAIL_NOT_FOUND + email);
         }

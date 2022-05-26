@@ -104,12 +104,12 @@ public class MailerServiceImpl implements MailerService {
             user.setVerifyCode(verifyCode);
             userRepository.save(user);
             RestResponse<ForgotPasswordResponse> CommonResponse = new RestResponse<>();
-            CommonResponse.setData(new ForgotPasswordResponse("200", SEND_MAIL_SUCCESS, user.getEmail()));
+            CommonResponse.setData(new ForgotPasswordResponse("OK", SEND_MAIL_SUCCESS, user.getEmail()));
             return CommonResponse;
         } catch (Exception e) {
             e.printStackTrace();
             RestResponse<ForgotPasswordResponse> CommonResponse = new RestResponse<>();
-            CommonResponse.setData(new ForgotPasswordResponse("404", e.getMessage()));
+            CommonResponse.setData(new ForgotPasswordResponse("INVALID_EMAIL", e.getMessage()));
             return CommonResponse;
         }
     }

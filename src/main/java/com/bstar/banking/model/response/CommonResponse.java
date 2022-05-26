@@ -10,4 +10,10 @@ import lombok.NoArgsConstructor;
 public class CommonResponse {
     private String statusCode;
     private String statusDescription;
+    private Object data;
+
+    public CommonResponse(String statusCode, String statusDescription) {
+        this.statusCode = statusCode;
+        this.statusDescription = statusDescription;
+    }
 }
