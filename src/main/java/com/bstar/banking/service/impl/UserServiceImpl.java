@@ -75,7 +75,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
         Date refreshTokenExpire = jwtUtil.getExpirationDateFromToken(refreshToken);
         long refreshTokenExpireMillis = refreshTokenExpire.getTime();
-        LoginResponse data = new LoginResponse("OK",
+        LoginResponse data = new LoginResponse("200",
                 GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS,
                 token,
                 tokenExpireMillis,
@@ -86,14 +86,14 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
 
     @Override
     public RestResponse<ForgotPasswordResponse> forgotPassWord(ForgotPasswordDTO forgotPasswordDTO) {
-        User user = userRepository.findById(forgotPasswordDTO.getEmail()).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
+        User user = userRepository.findById(forgotPasswordDTO.getEmail()).orElseThrow(() -> new NotFoundException("404", GET_USER_EMAIL_NOT_FOUND));
         if (user.getVerifyCode().equals(forgotPasswordDTO.getVerifyCode())) {
             user.setVerifyCode("");
             user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getPassword()));
             userRepository.save(user);
-            return new RestResponse<>(new ForgotPasswordResponse("OK", CHANGE_PASSWORD_SUCCESS));
+            return new RestResponse<>(new ForgotPasswordResponse("200", CHANGE_PASSWORD_SUCCESS));
         } else {
-            return new RestResponse<>(new ForgotPasswordResponse("INVALID_VERIFY_PASSWORD", VERIFY_PASSWORD_DOES_NOT_MATCH));
+            return new RestResponse<>(new ForgotPasswordResponse("404", VERIFY_PASSWORD_DOES_NOT_MATCH));
         }
     }
 

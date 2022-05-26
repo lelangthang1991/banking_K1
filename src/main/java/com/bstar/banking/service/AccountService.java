@@ -15,17 +15,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import javax.validation.Valid;
 
 public interface AccountService {
-    RestResponse<PinCodeResponse> checkPinCode(PinCodeDTO pinCodeDTO);
+    RestResponse<PinCodeResponse> checkPinCode(PinCodeDTO pinCodeDTO, Authentication authentication);
 
     RestResponse<ResponsePageAccount> findAccountByKeyword(String keyword, Pageable pageable);
 
     RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(String keyword, boolean isActivated, Pageable pageable);
 
     RestResponse<CommonResponse> findAccountByEmail(String email);
+
     RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable);
 
     RestResponse<CommonResponse> findAccountByAccountNumber(String accountNumber);
+
+    RestResponse<CommonResponse> accountDisabled(String accountNumber);
+
     void saveBankAccount(Account account, AccountRequest accountRequest, String email);
 
     ResponseEntity<?> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication);
+
 }
