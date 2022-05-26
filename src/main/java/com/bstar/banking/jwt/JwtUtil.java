@@ -12,7 +12,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,24 +27,14 @@ import static com.bstar.banking.common.JwtString.ROLES_CLAIMS;
 @Service
 public class JwtUtil {
     private final UserRepository customerRepository;
-    private int jwtExpirationInMs;
-    private int refreshExpirationDateInMs;
+    private static final int jwtExpirationInMs = 15 * 60 * 60 * 1000;
+    private static final int refreshExpirationDateInMs = 50 * 60 * 60 * 1000;
     private String secret;
 
 
     @Value("${jwt.secret.key}")
     public void setSecret(String secret) {
         this.secret = secret;
-    }
-
-    @Value("${jwt.expirationDateInMs}")
-    public void setExpirationDateInMs(int jwtExpirationInMs) {
-        this.jwtExpirationInMs = jwtExpirationInMs;
-    }
-
-    @Value("${jwt.refreshExpirationDateInMs}")
-    public void setRefreshExpirationDateInMs(int refreshExpirationDateInMs) {
-        this.refreshExpirationDateInMs = refreshExpirationDateInMs;
     }
 
     public String getEmailFromToken(String token) {
