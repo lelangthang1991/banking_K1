@@ -92,18 +92,6 @@ public class AccountController {
     @PostMapping("/register")
     public ResponseEntity<?> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
 
-//        String email = authentication.getName();
-//        if (!userRepository.existsById(authentication.getName())) {
-//            return ResponseEntity.badRequest().body(USER_NOT_FOUND);
-//        }
-//
-//        if (!bankrequest.getPinCode().equals(bankrequest.getConfirmPinCode())) {
-//            return ResponseEntity.badRequest().body(PINCODE_DOES_NOT_MATCH);
-//        }
-//        Account account = new Account();
-//
-//        accountService.saveBankAccount(account, bankrequest, email);
-
 
         return accountService.bankregister(bankrequest, authentication);
     }
