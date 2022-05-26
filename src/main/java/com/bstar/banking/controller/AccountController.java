@@ -1,22 +1,41 @@
 package com.bstar.banking.controller;
 
+import com.bstar.banking.entity.Account;
+import com.bstar.banking.model.request.AccountRequest;
 import com.bstar.banking.model.request.PinCodeDTO;
 import com.bstar.banking.model.response.CommonResponse;
 import com.bstar.banking.model.response.PinCodeResponse;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
+import com.bstar.banking.repository.AccountRepository;
+import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.AccountService;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
 
+import static com.bstar.banking.common.AccountString.ACCOUNT_REGISTRATION_SCCESSFUL;
+import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
+import static com.bstar.banking.common.UserString.USER_NOT_FOUND;
+
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/api/v1/accounts")
 public class AccountController {
+
+    @Autowired
+    AccountRepository accountrepo;
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     private final AccountService accountService;
 
@@ -54,18 +73,38 @@ public class AccountController {
     }
 
     @GetMapping("/get-by-email")
-    public RestResponse<CommonResponse> getAccountByEmail(Authentication authentication){
+    public RestResponse<CommonResponse> getAccountByEmail(Authentication authentication) {
         return accountService.findAccountByEmail(authentication.getName());
     }
 
     @GetMapping("/get-page")
     public RestResponse<ResponsePageAccount> getPageAccount(@RequestParam int pageNumber,
-                                                        @RequestParam int pageSize){
+                                                            @RequestParam int pageSize) {
         return accountService.findPageAccount(PageRequest.of(pageNumber, pageSize));
     }
 
     @GetMapping("/{accountNumber}")
-    public RestResponse<CommonResponse> getAccountDetail(@PathVariable("accountNumber") String accountNumber){
+    public RestResponse<CommonResponse> getAccountDetail(@PathVariable("accountNumber") String accountNumber) {
         return accountService.findAccountByAccountNumber(accountNumber);
+    }
+
+
+    @PostMapping("/register")
+    public ResponseEntity<?> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
+
+//        String email = authentication.getName();
+//        if (!userRepository.existsById(authentication.getName())) {
+//            return ResponseEntity.badRequest().body(USER_NOT_FOUND);
+//        }
+//
+//        if (!bankrequest.getPinCode().equals(bankrequest.getConfirmPinCode())) {
+//            return ResponseEntity.badRequest().body(PINCODE_DOES_NOT_MATCH);
+//        }
+//        Account account = new Account();
+//
+//        accountService.saveBankAccount(account, bankrequest, email);
+
+
+        return accountService.bankregister(bankrequest, authentication);
     }
 }

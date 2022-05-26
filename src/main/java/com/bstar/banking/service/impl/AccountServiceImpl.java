@@ -1,29 +1,43 @@
 package com.bstar.banking.service.impl;
 
+import com.bstar.banking.common.RandomBankNumber;
 import com.bstar.banking.entity.Account;
+import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.AccountDTO;
+import com.bstar.banking.model.request.AccountRequest;
 import com.bstar.banking.model.request.PinCodeDTO;
 import com.bstar.banking.model.response.CommonResponse;
 import com.bstar.banking.model.response.PinCodeResponse;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.AccountRepository;
+import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.AccountService;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.bstar.banking.common.AccountString.*;
+import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
+import static com.bstar.banking.common.UserString.USER_NOT_FOUND;
 
 @Service
 public class AccountServiceImpl implements AccountService {
 
+
+    @Autowired
+    UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final ModelMapper modelMapper;
 
@@ -31,6 +45,7 @@ public class AccountServiceImpl implements AccountService {
         this.accountRepository = accountRepository;
         this.modelMapper = modelMapper;
     }
+
     @Override
     public RestResponse<PinCodeResponse> checkPinCode(PinCodeDTO pinCodeDTO) {
         Account account = accountRepository.findById(pinCodeDTO.getAccountNumber())
@@ -41,21 +56,23 @@ public class AccountServiceImpl implements AccountService {
             return new RestResponse<>(new PinCodeResponse("INVALID_PIN_CODE", ACCOUNT_PIN_CODE_DOES_NOT_MATCH));
         }
     }
+
     @Override
     public RestResponse<ResponsePageAccount> findAccountByKeyword(String keyword, Pageable pageable) {
         Page<Account> accountPage = accountRepository.findAccountByKeyword(keyword, pageable);
         List<AccountDTO> categoryDTOS = accountPage.getContent()
-                        .parallelStream()
-                        .map(account -> modelMapper.map(account, AccountDTO.class))
-                        .collect(Collectors.toList());
+                .parallelStream()
+                .map(account -> modelMapper.map(account, AccountDTO.class))
+                .collect(Collectors.toList());
         return new RestResponse<>(new ResponsePageAccount(accountPage.getNumber(),
                 categoryDTOS.size(),
                 accountPage.getTotalPages(),
                 categoryDTOS));
     }
+
     @Override
-    public RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(String keyword, boolean isActivated , Pageable pageable) {
-        Page<Account> accountPage = accountRepository.findAccountByKeywordAndActivated(keyword, isActivated ,pageable);
+    public RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(String keyword, boolean isActivated, Pageable pageable) {
+        Page<Account> accountPage = accountRepository.findAccountByKeywordAndActivated(keyword, isActivated, pageable);
         List<AccountDTO> categoryDTOS = accountPage.getContent()
                 .parallelStream()
                 .map(account -> modelMapper.map(account, AccountDTO.class))
@@ -65,6 +82,7 @@ public class AccountServiceImpl implements AccountService {
                 accountPage.getTotalPages(),
                 categoryDTOS));
     }
+
     @Override
     public RestResponse<CommonResponse> findAccountByEmail(String email) {
         List<AccountDTO> accountDTOS = accountRepository.findAccountByEmail(email)
@@ -77,7 +95,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable){
+    public RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable) {
         Page<Account> accountPage = accountRepository.findAll(pageable);
         List<AccountDTO> categoryDTOS = accountPage.getContent()
                 .parallelStream()
@@ -96,6 +114,40 @@ public class AccountServiceImpl implements AccountService {
         return new RestResponse<>(new CommonResponse("OK",
                 "Get account success",
                 modelMapper.map(account, AccountDTO.class)));
+    }
+
+
+    @Override
+    public void saveBankAccount(Account account, AccountRequest accountRequest, String email) {
+        RandomBankNumber randomBankNumber = new RandomBankNumber();
+        account.setAccountType(accountRequest.getAccountType());
+        account.setAccountNumber(randomBankNumber.randomBankNumber());
+        account.setBalance((double) 0);
+        account.setPinCode(accountRequest.getPinCode());
+        account.setIsActivated(true);
+        account.setCreateDate(new Date());
+        account.setCreatePerson(email);
+        account.setUpdateDate(new Date());
+        account.setUpdatePerson(email);
+        User user = userRepository.getUserByEmail(email).orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+        account.setUser(user);
+        accountRepository.save(account);
+    }
+
+
+    public ResponseEntity<?> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
+        String email = authentication.getName();
+        if (!userRepository.existsById(authentication.getName())) {
+            return ResponseEntity.badRequest().body(USER_NOT_FOUND);
+        }
+
+        if (!bankrequest.getPinCode().equals(bankrequest.getConfirmPinCode())) {
+            return ResponseEntity.badRequest().body(PINCODE_DOES_NOT_MATCH);
+        }
+        Account account = new Account();
+
+        this.saveBankAccount(account, bankrequest, email);
+        return ResponseEntity.ok(ACCOUNT_REGISTRATION_SCCESSFUL);
     }
 
 }
