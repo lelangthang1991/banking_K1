@@ -89,4 +89,13 @@ public class AccountServiceImpl implements AccountService {
                 categoryDTOS));
     }
 
+    @Override
+    public RestResponse<CommonResponse> findAccountByAccountNumber(String accountNumber) {
+        Account account = accountRepository.findById(accountNumber)
+                .orElseThrow(() -> new NotFoundException("Account number not found" + accountNumber));
+        return new RestResponse<>(new CommonResponse("OK",
+                "Get account success",
+                modelMapper.map(account, AccountDTO.class)));
+    }
+
 }
