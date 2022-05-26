@@ -44,7 +44,7 @@ public class AccountController {
         return accountService.findAccountByKeyword(keyword, pageRequest);
     }
 
-    @PostMapping("/activated/find-by-keyword")
+    @GetMapping("/activated/find-by-keyword")
     public RestResponse<ResponsePageAccount> findAccountByKeywordActivated(@RequestParam(required = false) String keyword,
                                                                            @RequestParam boolean isActivated,
                                                                            @RequestParam int pageNumber,
@@ -53,14 +53,19 @@ public class AccountController {
         return accountService.findAccountByKeywordAndActivated(keyword, isActivated, pageRequest);
     }
 
-    @GetMapping("/find-by-email")
-    public RestResponse<CommonResponse> findAccountByEmail(Authentication authentication){
+    @GetMapping("/get-by-email")
+    public RestResponse<CommonResponse> getAccountByEmail(Authentication authentication){
         return accountService.findAccountByEmail(authentication.getName());
     }
 
-    @GetMapping("/find-page")
-    public RestResponse<ResponsePageAccount> findPageAccount(@RequestParam int pageNumber,
+    @GetMapping("/get-page")
+    public RestResponse<ResponsePageAccount> getPageAccount(@RequestParam int pageNumber,
                                                         @RequestParam int pageSize){
         return accountService.findPageAccount(PageRequest.of(pageNumber, pageSize));
+    }
+
+    @GetMapping("/{accountNumber}")
+    public RestResponse<CommonResponse> getAccountDetail(@PathVariable("accountNumber") String accountNumber){
+        return accountService.findAccountByAccountNumber(accountNumber);
     }
 }

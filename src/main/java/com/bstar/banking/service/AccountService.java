@@ -17,5 +17,5 @@ public interface AccountService {
     RestResponse<CommonResponse> findAccountByEmail(String email);
     RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable);
 
-
+    RestResponse<CommonResponse> findAccountByAccountNumber(String accountNumber);
 }
