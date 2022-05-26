@@ -6,9 +6,10 @@ import com.bstar.banking.model.response.PinCodeResponse;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 
 public interface AccountService {
-    RestResponse<PinCodeResponse> checkPinCode(PinCodeDTO pinCodeDTO);
+    RestResponse<PinCodeResponse> checkPinCode(PinCodeDTO pinCodeDTO, Authentication authentication);
 
     RestResponse<ResponsePageAccount> findAccountByKeyword(String keyword, Pageable pageable);
 
@@ -18,4 +19,6 @@ public interface AccountService {
     RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable);
 
     RestResponse<CommonResponse> findAccountByAccountNumber(String accountNumber);
+
+    RestResponse<CommonResponse> accountDisabled(String accountNumber);
 }
