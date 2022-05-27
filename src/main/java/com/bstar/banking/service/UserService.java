@@ -5,10 +5,7 @@ import com.bstar.banking.model.request.ForgotPasswordDTO;
 import com.bstar.banking.model.request.LoginDTO;
 import com.bstar.banking.model.request.SignupRequest;
 import com.bstar.banking.model.request.UserUpdateRequest;
-import com.bstar.banking.model.response.ForgotPasswordResponse;
-import com.bstar.banking.model.response.LoginResponse;
-import com.bstar.banking.model.response.RestResponse;
-import com.bstar.banking.model.response.UserInfoResponse;
+import com.bstar.banking.model.response.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,11 +26,11 @@ public interface UserService {
 
     UserInfoResponse returninfo(User user);
 
-    ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest);
+   RestResponse<SignUpResponse> signup(@Valid @RequestBody SignupRequest signupRequest);
 
-    ResponseEntity<?> activate(@PathVariable String email, @PathVariable String verify);
+    RestResponse<CommonResponse> activate(@PathVariable String email, @PathVariable String verify);
 
-    ResponseEntity<?> update(@RequestBody UserUpdateRequest updateRequest, Authentication authentication);
+    RestResponse<UserInfoResponse> update(@RequestBody UserUpdateRequest updateRequest, Authentication authentication);
 
-    ResponseEntity<?> info(Authentication authentication);
+    RestResponse<UserInfoResponse> info(Authentication authentication);
 }

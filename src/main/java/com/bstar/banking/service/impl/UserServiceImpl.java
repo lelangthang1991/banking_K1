@@ -10,17 +10,13 @@ import com.bstar.banking.model.request.ForgotPasswordDTO;
 import com.bstar.banking.model.request.LoginDTO;
 import com.bstar.banking.model.request.SignupRequest;
 import com.bstar.banking.model.request.UserUpdateRequest;
-import com.bstar.banking.model.response.ForgotPasswordResponse;
-import com.bstar.banking.model.response.LoginResponse;
-import com.bstar.banking.model.response.RestResponse;
-import com.bstar.banking.model.response.UserInfoResponse;
+import com.bstar.banking.model.response.*;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.security.UserDetailsServiceImpl;
 import com.bstar.banking.service.AbstractCommonService;
 import com.bstar.banking.service.MailerService;
 import com.bstar.banking.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -93,11 +89,9 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
             userRepository.save(user);
             return new RestResponse<>(new ForgotPasswordResponse("200", CHANGE_PASSWORD_SUCCESS));
         } else {
-            return new RestResponse<>(new ForgotPasswordResponse("404", VERIFY_PASSWORD_DOES_NOT_MATCH));
+            return new RestResponse<>(new ForgotPasswordResponse("401", VERIFY_PASSWORD_DOES_NOT_MATCH));
         }
     }
-
-
 
 
     @Override
@@ -151,26 +145,26 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
     }
 
 
-
     @Override
-    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest){
+    public RestResponse<SignUpResponse> signup(@Valid @RequestBody SignupRequest signupRequest) {
 
         //check email
         if (userRepository.existsById(signupRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(EMAIl_WAS_REGISTERED);
+            return new RestResponse<>(new SignUpResponse("400", EMAIl_WAS_REGISTERED));
+
         }
 
         //check phone
 
         if (userRepository.findByPhone(signupRequest.getPhone()) != null) {
-            return ResponseEntity.badRequest().body(PHONE_WAS_REGISTERED);
+            return new RestResponse<>(new SignUpResponse("400", PHONE_WAS_REGISTERED));
+
         }
         //check password
         if (!signupRequest.getPassword().equals(signupRequest.getConfirm())) {
-            return ResponseEntity.badRequest().body(PASSWORD_DOES_NOT_MATCH);
+            return new RestResponse<>(new SignUpResponse("400", VERIFY_PASSWORD_DOES_NOT_MATCH));
+
         }
-
-
         try {
             User user = new User();
             //Random verify code
@@ -179,50 +173,75 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
             this.addUserSignup(signupRequest, user, verifycode);
             // Send mail to user account
             mailerService.sendWelcome(user, verifycode);
-            return ResponseEntity.ok(PLEASE_CHECK_YOUR_EMAIL);
+            return new RestResponse<>(new SignUpResponse("200", PLEASE_CHECK_YOUR_EMAIL));
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(REGISTRATION_FAILED);
+            return new RestResponse<>(new SignUpResponse("400", REGISTRATION_FAILED));
 
         }
     }
 
     @Override
-    public ResponseEntity<?> activate(@PathVariable String email, @PathVariable String verify){
+    public RestResponse<CommonResponse> activate(@PathVariable String email, @PathVariable String verify) {
         User user = userRepository.getUserByEmail(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         if (user.getVerifyCode().equals(verify)) {
+            user.setRole(1);
             user.setIsActivated(true);
             userRepository.save(user);
-            return ResponseEntity.ok(SUCCESSFUL_ACCOUNT_ACTIVATION);
+            return new RestResponse<>(new CommonResponse("200", SUCCESSFUL_ACCOUNT_ACTIVATION));
+
         }
-        return ResponseEntity.badRequest().body(ACCOUNT_ACTIVATION_FAILED);
+        return new RestResponse<>(new CommonResponse("400", ACCOUNT_ACTIVATION_FAILED));
+
     }
 
     @Override
-    public ResponseEntity<?> update(@RequestBody UserUpdateRequest updateRequest, Authentication authentication){
+    public RestResponse<UserInfoResponse> update(@RequestBody UserUpdateRequest updateRequest, Authentication authentication) {
 
         String username = authentication.getName();
         if (!userRepository.existsById(username)) {
-            return ResponseEntity.badRequest().body(USER_NOT_FOUND);
-        }
+            return new RestResponse<>(new UserInfoResponse("404", USER_NOT_FOUND));
 
+        }
         //find user email who is specifying
         User user = userRepository.getUserByEmail(authentication.getName())
-                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND"));
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
         this.updateUser(updateRequest, user);
         //modify firstName; lastName;  address; phone; Date of birth; updatePerson ; updateDate;
-        return ResponseEntity.ok(UPDATE_SUCCESSFUL);
+        return new RestResponse<>(new UserInfoResponse("200", UPDATE_SUCCESSFUL,
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getDob(),
+                user.getGender(),
+                user.getAddress(),
+                user.getPhone(),
+                user.getUpdate_date(),
+                user.getCreate_date()));
 
     }
 
     @Override
-    public ResponseEntity<?> info(Authentication authentication){
+    public RestResponse<UserInfoResponse> info(Authentication authentication) {
+
         if (!userRepository.existsById(authentication.getName())) {
-            return ResponseEntity.badRequest().body(USER_NOT_FOUND);
+            return new RestResponse<>(new UserInfoResponse("404", USER_NOT_FOUND));
+
         }
         User user = userRepository.getUserByEmail(authentication.getName())
-                .orElseThrow(() -> new BusinessException("USER_NOT_FOUND"));
-        return ResponseEntity.ok(this.returninfo(user));
-//
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+        return new RestResponse<>(new UserInfoResponse("200",
+                GET_USER_INFO_SUCCESS,
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getDob(),
+                user.getGender(),
+                user.getAddress(),
+                user.getPhone(),
+                user.getUpdate_date(),
+                user.getCreate_date()));
+
     }
 
 }

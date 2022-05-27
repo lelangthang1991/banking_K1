@@ -9,21 +9,17 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfoResponse {
+public class AccountResponse {
+
     private String statusCode;
     private String statusDescription;
+    private String accountNumber;
+    private Double balance;
+    private Integer accountType;
+    private String createPerson;
+    private Date createDate;
 
-    private String email;
-    private String firstName;
-    private String lastName;
-    private Date dob;
-    private Integer gender;
-    private String address;
-    private String phone;
-    private Date update_date;
-    private Date create_date;
-
-    public UserInfoResponse(String status, String message) {
+    public AccountResponse(String status, String message) {
         this.statusCode = status;
         this.statusDescription = message;
     }

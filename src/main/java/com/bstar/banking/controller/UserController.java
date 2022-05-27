@@ -2,9 +2,7 @@ package com.bstar.banking.controller;
 
 import com.bstar.banking.common.RandomVerifycode;
 import com.bstar.banking.model.request.*;
-import com.bstar.banking.model.response.ForgotPasswordResponse;
-import com.bstar.banking.model.response.LoginResponse;
-import com.bstar.banking.model.response.RestResponse;
+import com.bstar.banking.model.response.*;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.MailerService;
 import com.bstar.banking.service.UserService;
@@ -61,17 +59,22 @@ public class UserController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
-        userService.signup(signupRequest);
-        return userService.signup(signupRequest);
+    public ResponseEntity<RestResponse<SignUpResponse>> signup(@Valid @RequestBody SignupRequest signupRequest) {
+        RestResponse<SignUpResponse> response = userService.signup(signupRequest);
+        if(response.getData().getStatusCode().equals("200"))
+            return ResponseEntity.ok(response);
+
+        return ResponseEntity.badRequest().body(response);
 
 
     }
 
     @GetMapping("/activate/{email}/{verify}")
-    public ResponseEntity<?> activate(@PathVariable String email, @PathVariable String verify) {
-        userService.activate(email, verify);
-        return userService.activate(email, verify);
+    public ResponseEntity<RestResponse<CommonResponse>> activate(@PathVariable String email, @PathVariable String verify) {
+        RestResponse<CommonResponse> response = userService.activate(email,verify);
+        if(response.getData().getStatusCode().equals("200"))
+            return ResponseEntity.ok(response);
+        return ResponseEntity.badRequest().body(response);
 
 
     }
@@ -79,7 +82,10 @@ public class UserController {
     @PostMapping("/update")
     public ResponseEntity<?> update(@RequestBody UserUpdateRequest updateRequest, Authentication authentication) {
 
-        return userService.update(updateRequest, authentication);
+        RestResponse<UserInfoResponse> response = userService.update(updateRequest,authentication);
+        if(response.getData().getStatusCode().equals("200"))
+            return ResponseEntity.ok(response);
+        return ResponseEntity.badRequest().body(response);
 
 
     }
@@ -87,9 +93,12 @@ public class UserController {
 
     //need user who is login in this page
     @GetMapping("/info")
-    public ResponseEntity<?> info(Authentication authentication) {
+    public ResponseEntity<RestResponse<UserInfoResponse>> info(Authentication authentication) {
 
+        RestResponse<UserInfoResponse> response = userService.info(authentication);
+        if(response.getData().getStatusCode().equals("200"))
+            return ResponseEntity.ok(response);
+        return ResponseEntity.badRequest().body(response);
 
-        return userService.info(authentication);
     }
 }

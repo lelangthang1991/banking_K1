@@ -7,17 +7,13 @@ import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.AccountDTO;
 import com.bstar.banking.model.request.AccountRequest;
 import com.bstar.banking.model.request.PinCodeDTO;
-import com.bstar.banking.model.response.CommonResponse;
-import com.bstar.banking.model.response.PinCodeResponse;
-import com.bstar.banking.model.response.ResponsePageAccount;
-import com.bstar.banking.model.response.RestResponse;
+import com.bstar.banking.model.response.*;
 import com.bstar.banking.repository.AccountRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.AccountService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,66 +56,39 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public RestResponse<ResponsePageAccount> findAccountByKeyword(String keyword, Pageable pageable) {
         Page<Account> accountPage = accountRepository.findAccountByKeyword(keyword, pageable);
-        List<AccountDTO> categoryDTOS = accountPage.getContent()
-                .parallelStream()
-                .map(account -> modelMapper.map(account, AccountDTO.class))
-                .collect(Collectors.toList());
-        return new RestResponse<>(new ResponsePageAccount(accountPage.getNumber(),
-                categoryDTOS.size(),
-                accountPage.getTotalPages(),
-                categoryDTOS));
+        List<AccountDTO> categoryDTOS = accountPage.getContent().parallelStream().map(account -> modelMapper.map(account, AccountDTO.class)).collect(Collectors.toList());
+        return new RestResponse<>(new ResponsePageAccount(accountPage.getNumber(), categoryDTOS.size(), accountPage.getTotalPages(), categoryDTOS));
     }
 
     @Override
     public RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(String keyword, boolean isActivated, Pageable pageable) {
         Page<Account> accountPage = accountRepository.findAccountByKeywordAndActivated(keyword, isActivated, pageable);
-        List<AccountDTO> categoryDTOS = accountPage.getContent()
-                .parallelStream()
-                .map(account -> modelMapper.map(account, AccountDTO.class))
-                .collect(Collectors.toList());
-        return new RestResponse<>(new ResponsePageAccount(accountPage.getNumber(),
-                accountPage.getTotalElements(),
-                accountPage.getTotalPages(),
-                categoryDTOS));
+        List<AccountDTO> categoryDTOS = accountPage.getContent().parallelStream().map(account -> modelMapper.map(account, AccountDTO.class)).collect(Collectors.toList());
+        return new RestResponse<>(new ResponsePageAccount(accountPage.getNumber(), accountPage.getTotalElements(), accountPage.getTotalPages(), categoryDTOS));
     }
 
     @Override
     public RestResponse<CommonResponse> findAccountByEmail(String email) {
-        List<AccountDTO> accountDTOS = accountRepository.findAccountByEmail(email)
-                .stream()
-                .map(account -> modelMapper.map(account, AccountDTO.class))
-                .collect(Collectors.toList());
-        return new RestResponse<>(new CommonResponse("200",
-                "Get account list success",
-                accountDTOS));
+        List<AccountDTO> accountDTOS = accountRepository.findAccountByEmail(email).stream().map(account -> modelMapper.map(account, AccountDTO.class)).collect(Collectors.toList());
+        return new RestResponse<>(new CommonResponse("200", "Get account list success", accountDTOS));
     }
 
     @Override
     public RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable) {
         Page<Account> accountPage = accountRepository.findAll(pageable);
-        List<AccountDTO> categoryDTOS = accountPage.getContent()
-                .parallelStream()
-                .map(account -> modelMapper.map(account, AccountDTO.class))
-                .collect(Collectors.toList());
-        return new RestResponse<>(new ResponsePageAccount(accountPage.getNumber(),
-                accountPage.getTotalElements(),
-                accountPage.getTotalPages(),
-                categoryDTOS));
+        List<AccountDTO> categoryDTOS = accountPage.getContent().parallelStream().map(account -> modelMapper.map(account, AccountDTO.class)).collect(Collectors.toList());
+        return new RestResponse<>(new ResponsePageAccount(accountPage.getNumber(), accountPage.getTotalElements(), accountPage.getTotalPages(), categoryDTOS));
     }
 
     @Override
     public RestResponse<CommonResponse> findAccountByAccountNumber(String accountNumber) {
-        Account account = accountRepository.findById(accountNumber)
-                .orElseThrow(() -> new NotFoundException("404", ACCOUNT_NUMBER_NOT_FOUND));
-        return new RestResponse<>(new CommonResponse("200",
-                "Get account success",
-                modelMapper.map(account, AccountDTO.class)));
+        Account account = accountRepository.findById(accountNumber).orElseThrow(() -> new NotFoundException("404", ACCOUNT_NUMBER_NOT_FOUND));
+        return new RestResponse<>(new CommonResponse("200", "Get account success", modelMapper.map(account, AccountDTO.class)));
     }
 
     @Override
     public RestResponse<CommonResponse> accountDisabled(String accountNumber) {
-        Account account = accountRepository.findById(accountNumber)
-                .orElseThrow(() -> new NotFoundException("404", ACCOUNT_NUMBER_NOT_FOUND));
+        Account account = accountRepository.findById(accountNumber).orElseThrow(() -> new NotFoundException("404", ACCOUNT_NUMBER_NOT_FOUND));
         account.setIsActivated(false);
         accountRepository.save(account);
         return new RestResponse<>(new CommonResponse("200", "Account disabled success"));
@@ -144,19 +113,27 @@ public class AccountServiceImpl implements AccountService {
     }
 
 
-    public ResponseEntity<?> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
+    public RestResponse<AccountResponse> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
         String email = authentication.getName();
         if (!userRepository.existsById(authentication.getName())) {
-            return ResponseEntity.badRequest().body(USER_NOT_FOUND);
+            return new RestResponse<>(new AccountResponse("404", USER_NOT_FOUND));
+
         }
 
         if (!bankrequest.getPinCode().equals(bankrequest.getConfirmPinCode())) {
-            return ResponseEntity.badRequest().body(PINCODE_DOES_NOT_MATCH);
+            return new RestResponse<>(new AccountResponse("404", PINCODE_DOES_NOT_MATCH));
+
         }
         Account account = new Account();
 
         this.saveBankAccount(account, bankrequest, email);
-        return ResponseEntity.ok(ACCOUNT_REGISTRATION_SCCESSFUL);
+        return new RestResponse<>(new AccountResponse("200", ACCOUNT_REGISTRATION_SUCCESSFUL,
+                account.getAccountNumber(),
+                account.getBalance(),
+                account.getAccountType(),
+                account.getCreatePerson(),
+                account.getCreateDate()));
+
     }
 
 }

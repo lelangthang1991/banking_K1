@@ -2,10 +2,7 @@ package com.bstar.banking.controller;
 
 import com.bstar.banking.model.request.AccountRequest;
 import com.bstar.banking.model.request.PinCodeDTO;
-import com.bstar.banking.model.response.CommonResponse;
-import com.bstar.banking.model.response.PinCodeResponse;
-import com.bstar.banking.model.response.ResponsePageAccount;
-import com.bstar.banking.model.response.RestResponse;
+import com.bstar.banking.model.response.*;
 import com.bstar.banking.repository.AccountRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.AccountService;
@@ -61,9 +58,13 @@ public class AccountController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<?> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
+    public ResponseEntity<RestResponse<AccountResponse>> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
 
 
-        return accountService.bankregister(bankrequest, authentication);
+        RestResponse<AccountResponse> response = accountService.bankregister(bankrequest,authentication);
+        if(response.getData().getStatusCode().equals("200"))
+            return ResponseEntity.ok(response);
+        return ResponseEntity.badRequest().body(response);
+        //return accountService.bankregister(bankrequest, authentication);
     }
 }

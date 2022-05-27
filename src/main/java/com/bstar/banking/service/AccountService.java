@@ -3,10 +3,7 @@ package com.bstar.banking.service;
 import com.bstar.banking.entity.Account;
 import com.bstar.banking.model.request.AccountRequest;
 import com.bstar.banking.model.request.PinCodeDTO;
-import com.bstar.banking.model.response.CommonResponse;
-import com.bstar.banking.model.response.PinCodeResponse;
-import com.bstar.banking.model.response.ResponsePageAccount;
-import com.bstar.banking.model.response.RestResponse;
+import com.bstar.banking.model.response.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,6 +28,6 @@ public interface AccountService {
 
     void saveBankAccount(Account account, AccountRequest accountRequest, String email);
 
-    ResponseEntity<?> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication);
+    RestResponse<AccountResponse> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication);
 
 }

@@ -27,6 +27,9 @@ public class UserString {
 
     public static final String UPDATE_SUCCESSFUL = "Update successful";
     public static final String UPDATE_FAILURE = "UUPDATE FAILURE";
+    public static final String GET_USER_INFO_SUCCESS = "Get user info success";
+
+
 
 
 
