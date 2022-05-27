@@ -81,7 +81,7 @@ public class MailerServiceImpl implements MailerService {
 
     @Override
     public void sendWelcome(User account,String verifycode) {
-        String url = "http://localhost:8080/api/v1/users/activate/" + account.getEmail() + "/" + verifycode;
+        String url = "http://localhost:8080/api/v1/users/activate-user/" + account.getEmail() + "/" + verifycode;
         try {
             String to = account.getEmail();
 

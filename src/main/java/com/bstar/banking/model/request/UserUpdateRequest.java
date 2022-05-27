@@ -14,20 +14,17 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserUpdateRequest {
-
-
     @NotBlank
-    private String firstname;
+    private String firstName;
     @NotBlank
-    private String lastname;
+    private String lastName;
     private Date dob;
     private Integer gender;
     @NotBlank
     private String address;
     @Size(min = 10, max = 14, message = "phone must be number and between 10 and 20 characters")
     private String phone;
-    @NotBlank
-    private String update_person;
-    private Date update_date;
+    private String updatePerson;
+    private Date updateDate;
 
 }

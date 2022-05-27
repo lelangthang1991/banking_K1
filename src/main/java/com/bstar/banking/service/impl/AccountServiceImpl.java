@@ -5,9 +5,12 @@ import com.bstar.banking.entity.Account;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.AccountDTO;
-import com.bstar.banking.model.request.AccountRequest;
 import com.bstar.banking.model.request.PinCodeDTO;
-import com.bstar.banking.model.response.*;
+import com.bstar.banking.model.request.RegisterBankAccountRq;
+import com.bstar.banking.model.response.CommonResponse;
+import com.bstar.banking.model.response.PinCodeResponse;
+import com.bstar.banking.model.response.ResponsePageAccount;
+import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.AccountRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.AccountService;
@@ -24,8 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.bstar.banking.common.AccountString.*;
-import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
-import static com.bstar.banking.common.UserString.USER_NOT_FOUND;
+import static com.bstar.banking.common.UserString.*;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -96,12 +98,13 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public void saveBankAccount(Account account, AccountRequest accountRequest, String email) {
+    public void saveBankAccount(Account account, RegisterBankAccountRq registerBankAccountRq, String email) {
         RandomBankNumber randomBankNumber = new RandomBankNumber();
-        account.setAccountType(accountRequest.getAccountType());
+
+        account.setAccountType(registerBankAccountRq.getAccountType());
         account.setAccountNumber(randomBankNumber.randomBankNumber());
         account.setBalance((double) 0);
-        account.setPinCode(accountRequest.getPinCode());
+        account.setPinCode(registerBankAccountRq.getPinCode());
         account.setIsActivated(true);
         account.setCreateDate(new Date());
         account.setCreatePerson(email);
@@ -113,26 +116,17 @@ public class AccountServiceImpl implements AccountService {
     }
 
 
-    public RestResponse<AccountResponse> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
+    public RestResponse<CommonResponse> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq, Authentication authentication) {
         String email = authentication.getName();
-        if (!userRepository.existsById(authentication.getName())) {
-            return new RestResponse<>(new AccountResponse("404", USER_NOT_FOUND));
-
-        }
-
-        if (!bankrequest.getPinCode().equals(bankrequest.getConfirmPinCode())) {
-            return new RestResponse<>(new AccountResponse("404", PINCODE_DOES_NOT_MATCH));
-
+        userRepository.findById(email).orElseThrow(()-> new NotFoundException(EMAIL_NOT_FOUND));
+        if (!registerBankAccountRq.getPinCode().equals(registerBankAccountRq.getConfirmPinCode())) {
+            return new RestResponse<>(new CommonResponse("404", PINCODE_DOES_NOT_MATCH));
         }
         Account account = new Account();
-
-        this.saveBankAccount(account, bankrequest, email);
-        return new RestResponse<>(new AccountResponse("200", ACCOUNT_REGISTRATION_SUCCESSFUL,
-                account.getAccountNumber(),
-                account.getBalance(),
-                account.getAccountType(),
-                account.getCreatePerson(),
-                account.getCreateDate()));
+        this.saveBankAccount(account, registerBankAccountRq, email);
+        return new RestResponse<>(new CommonResponse("200",
+                ACCOUNT_REGISTRATION_SUCCESSFUL,
+                modelMapper.map(account,AccountDTO.class)));
 
     }
 

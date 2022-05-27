@@ -58,47 +58,39 @@ public class UserController {
     }
 
 
-    @PostMapping("/signup")
-    public ResponseEntity<RestResponse<SignUpResponse>> signup(@Valid @RequestBody SignupRequest signupRequest) {
-        RestResponse<SignUpResponse> response = userService.signup(signupRequest);
-        if(response.getData().getStatusCode().equals("200"))
+    @PostMapping("/signup-user")
+    public ResponseEntity<RestResponse<CommonResponse>> signupUser(@Valid @RequestBody SignupRequest signupRequest) {
+        RestResponse<CommonResponse> response = userService.signupUser(signupRequest);
+        if (response.getData().getStatusCode().equals("200"))
             return ResponseEntity.ok(response);
 
         return ResponseEntity.badRequest().body(response);
-
 
     }
 
-    @GetMapping("/activate/{email}/{verify}")
-    public ResponseEntity<RestResponse<CommonResponse>> activate(@PathVariable String email, @PathVariable String verify) {
-        RestResponse<CommonResponse> response = userService.activate(email,verify);
-        if(response.getData().getStatusCode().equals("200"))
+    @GetMapping("/activate-user/{email}/{verify}")
+    public ResponseEntity<RestResponse<CommonResponse>> activateUser(@PathVariable String email, @PathVariable String verify) {
+        RestResponse<CommonResponse> response = userService.activateUser(email, verify);
+        if (response.getData().getStatusCode().equals("200"))
             return ResponseEntity.ok(response);
         return ResponseEntity.badRequest().body(response);
-
 
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<?> update(@RequestBody UserUpdateRequest updateRequest, Authentication authentication) {
-
-        RestResponse<UserInfoResponse> response = userService.update(updateRequest,authentication);
-        if(response.getData().getStatusCode().equals("200"))
+    @PostMapping("/update-user")
+    public ResponseEntity<?> update(@Valid @RequestBody UserUpdateRequest updateRequest, Authentication authentication) {
+        RestResponse<CommonResponse> response = userService.updateUser(updateRequest, authentication);
+        if (response.getData().getStatusCode().equals("200"))
             return ResponseEntity.ok(response);
         return ResponseEntity.badRequest().body(response);
-
-
     }
 
+    @GetMapping("/info-user")
+    public ResponseEntity<RestResponse<CommonResponse>> infoUser(Authentication authentication) {
 
-    //need user who is login in this page
-    @GetMapping("/info")
-    public ResponseEntity<RestResponse<UserInfoResponse>> info(Authentication authentication) {
-
-        RestResponse<UserInfoResponse> response = userService.info(authentication);
-        if(response.getData().getStatusCode().equals("200"))
+        RestResponse<CommonResponse> response = userService.infoUser(authentication);
+        if (response.getData().getStatusCode().equals("200"))
             return ResponseEntity.ok(response);
         return ResponseEntity.badRequest().body(response);
-
     }
 }

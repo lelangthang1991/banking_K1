@@ -10,7 +10,7 @@ import javax.validation.constraints.Size;
 
 @Data
 @Builder
-public class AccountRequest {
+public class RegisterBankAccountRq {
 
     @Min(1)
     @Max(5)
