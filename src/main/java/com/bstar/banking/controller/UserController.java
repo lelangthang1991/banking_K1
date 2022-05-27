@@ -62,7 +62,6 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
-        userService.signup(signupRequest);
         return userService.signup(signupRequest);
 
 
@@ -70,7 +69,6 @@ public class UserController {
 
     @GetMapping("/activate/{email}/{verify}")
     public ResponseEntity<?> activate(@PathVariable String email, @PathVariable String verify) {
-        userService.activate(email, verify);
         return userService.activate(email, verify);
 
 
