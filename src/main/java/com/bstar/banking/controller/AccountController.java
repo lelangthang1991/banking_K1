@@ -65,6 +65,5 @@ public class AccountController {
         if(response.getData().getStatusCode().equals("200"))
             return ResponseEntity.ok(response);
         return ResponseEntity.badRequest().body(response);
-        //return accountService.bankregister(bankrequest, authentication);
     }
 }
