@@ -58,7 +58,7 @@ public class AccountController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<RestResponse<AccountResponse>> bankregister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
+    public ResponseEntity<RestResponse<AccountResponse>> bankRegister(@Valid @RequestBody AccountRequest bankrequest, Authentication authentication) {
 
 
         RestResponse<AccountResponse> response = accountService.bankregister(bankrequest,authentication);
