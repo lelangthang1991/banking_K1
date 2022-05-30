@@ -43,4 +43,5 @@ public class User {
     @OneToMany(mappedBy = "user")
     List<Account> accounts;
 
+
 }
