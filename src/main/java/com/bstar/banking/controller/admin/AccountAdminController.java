@@ -1,6 +1,7 @@
 package com.bstar.banking.controller.admin;
 
 import com.bstar.banking.model.request.AccountDTO;
+import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.AccountService;
@@ -65,5 +66,11 @@ public class AccountAdminController {
     @DeleteMapping("/{accountNumber}")
     public RestResponse<?> accountDisabled(@PathVariable("accountNumber") String accountNumber) {
         return accountService.accountDisabled(accountNumber);
+    }
+
+    @PostMapping("/bank-register")
+    public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+                                                        Authentication authentication) {
+        return ResponseEntity.ok(accountService.bankRegister(registerBankAccountRq, authentication));
     }
 }

@@ -157,19 +157,28 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
     }
 
-
-    public RestResponse<?> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq, Authentication authentication) {
-        String email = authentication.getName();
-        userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+    public RestResponse<?> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+                                        Authentication authentication) {
         if (!registerBankAccountRq.getPinCode().equals(registerBankAccountRq.getConfirmPinCode())) {
             return new RestResponse<>(NOT_FOUND, PINCODE_DOES_NOT_MATCH);
         }
+        String email = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         Account account = new Account();
-        this.saveBankAccount(account, registerBankAccountRq, email);
+        RandomBankNumber randomBankNumber = new RandomBankNumber();
+        account.setAccountType(registerBankAccountRq.getAccountType());
+        account.setAccountNumber(randomBankNumber.randomBankNumber());
+        account.setBalance((double) 0);
+        account.setPinCode(registerBankAccountRq.getPinCode());
+        account.setIsActivated(true);
+        account.setCreateDate(new Date());
+        account.setCreatePerson(email);
+        account.setUpdateDate(new Date());
+        account.setUpdatePerson(email);
+        account.setUser(user);
+        accountRepository.save(account);
         return new RestResponse<>(OK,
                 ACCOUNT_REGISTRATION_SUCCESSFUL,
                 modelMapper.map(account, AccountDTO.class));
-
     }
-
 }
