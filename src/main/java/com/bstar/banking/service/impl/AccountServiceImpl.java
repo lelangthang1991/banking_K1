@@ -46,9 +46,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public RestResponse<?> checkPinCode(PinCodeDTO pinCodeDTO, Authentication authentication) {
         User user = userRepository.getUserByEmail(authentication.getName()).orElseThrow(() -> new NotFoundException("404", "INVALID_EMAIL"));
-        boolean isMatch = user.getAccounts().stream().anyMatch(acc -> {
-            return acc.getPinCode().equals(pinCodeDTO.getPinCode()) && acc.getAccountNumber().equals(pinCodeDTO.getAccountNumber());
-        });
+        boolean isMatch = user.getAccounts().stream().anyMatch(acc -> acc.getPinCode().equals(pinCodeDTO.getPinCode()) && acc.getAccountNumber().equals(pinCodeDTO.getAccountNumber()));
         if (isMatch) {
             return new RestResponse<>(OK, ACCOUNT_PIN_CODE_MATCH);
         } else {
@@ -180,5 +178,4 @@ public class AccountServiceImpl implements AccountService {
                 ACCOUNT_CHANGE_PIN_CODE_SUCCESSFUL,
                 modelMapper.map(account, AccountDTO.class));
     }
-
 }
