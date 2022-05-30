@@ -1,15 +1,15 @@
 package com.bstar.banking.controller;
 
-import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.request.PinCodeDTO;
-import com.bstar.banking.model.response.*;
+import com.bstar.banking.model.request.RegisterBankAccountRq;
+import com.bstar.banking.model.response.ResponsePageAccount;
+import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.AccountRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -34,36 +34,31 @@ public class AccountController {
         this.accountService = accountService;
     }
 
-    @PreAuthorize("isAuthenticated()")
     @PostMapping("/check-pin")
-    public RestResponse<PinCodeResponse> checkPinCode(@Valid @RequestBody PinCodeDTO pinCodeDTO, Authentication authentication) {
+    public RestResponse<?> checkPinCode(@Valid @RequestBody PinCodeDTO pinCodeDTO, Authentication authentication) {
         return accountService.checkPinCode(pinCodeDTO, authentication);
     }
 
     @GetMapping("/get-by-email")
-    public RestResponse<CommonResponse> getAccountByEmail(Authentication authentication) {
-        return accountService.findAccountByEmail(authentication.getName());
+    public ResponseEntity<RestResponse<?>> getAccountByEmail(Authentication authentication) {
+        return ResponseEntity.ok(accountService.findAccountByEmail(authentication.getName()));
     }
 
     @GetMapping("/get-page")
-    public RestResponse<ResponsePageAccount> getPageAccount(@RequestParam int pageNumber,
-                                                            @RequestParam int pageSize) {
-        return accountService.findPageAccount(PageRequest.of(pageNumber, pageSize));
+    public ResponseEntity<RestResponse<ResponsePageAccount>> getPageAccount(@RequestParam int pageNumber,
+                                                                            @RequestParam int pageSize) {
+        return ResponseEntity.ok(accountService.findPageAccount(PageRequest.of(pageNumber, pageSize)));
     }
 
     @GetMapping("/{accountNumber}")
-    public RestResponse<CommonResponse> getAccountDetail(@PathVariable("accountNumber") String accountNumber) {
-        return accountService.findAccountByAccountNumber(accountNumber);
+    public ResponseEntity<RestResponse<?>> getAccountDetail(@PathVariable("accountNumber") String accountNumber) {
+        return ResponseEntity.ok(accountService.findAccountByAccountNumber(accountNumber));
     }
 
 
     @PostMapping("/bank-register")
-    public ResponseEntity<RestResponse<CommonResponse>> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq, Authentication authentication) {
-
-
-        RestResponse<CommonResponse> response = accountService.bankRegister(registerBankAccountRq,authentication);
-        if(response.getData().getStatusCode().equals("200"))
-            return ResponseEntity.ok(response);
-        return ResponseEntity.badRequest().body(response);
+    public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+                                                        Authentication authentication) {
+        return ResponseEntity.ok(accountService.bankRegister(registerBankAccountRq, authentication));
     }
 }

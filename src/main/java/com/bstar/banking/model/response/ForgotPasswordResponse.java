@@ -8,12 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ForgotPasswordResponse {
-    private String statusCode;
-    private String statusDescription;
     private String email;
-
-    public ForgotPasswordResponse(String status, String message) {
-        this.statusCode = status;
-        this.statusDescription = message;
-    }
 }
