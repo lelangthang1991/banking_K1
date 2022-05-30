@@ -5,6 +5,7 @@ import com.bstar.banking.entity.Account;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.AccountDTO;
+import com.bstar.banking.model.request.ChangePinCodeDTO;
 import com.bstar.banking.model.request.PinCodeDTO;
 import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
@@ -163,6 +164,21 @@ public class AccountServiceImpl implements AccountService {
                 ACCOUNT_REGISTRATION_SUCCESSFUL,
                 modelMapper.map(account, AccountDTO.class));
 
+    }
+
+    @Override
+    public RestResponse<?> changePinCode(ChangePinCodeDTO changePinCodeDTO, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
+        Account account = user.getAccounts().stream()
+                .filter(us -> us.getAccountNumber().equals(changePinCodeDTO.getAccountNumber()))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(ACCOUNT_PIN_CODE_DOES_NOT_MATCH));
+        account.setPinCode(changePinCodeDTO.getNewPinCode());
+        accountRepository.save(account);
+        return new RestResponse<>(OK,
+                ACCOUNT_CHANGE_PIN_CODE_SUCCESSFUL,
+                modelMapper.map(account, AccountDTO.class));
     }
 
 }
