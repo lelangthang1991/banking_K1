@@ -61,7 +61,7 @@ public class AccountController {
         return ResponseEntity.ok(accountService.changePinCode(changePinCodeDTO, authentication));
     }
     @PostMapping("/bank-register")
-    public ResponseEntity<RestResponse<?>> bankAdminRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+    public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
                                                         Authentication authentication) {
         return ResponseEntity.ok(accountService.bankRegister(registerBankAccountRq, authentication));
     }
