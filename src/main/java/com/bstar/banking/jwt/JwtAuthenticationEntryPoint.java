@@ -27,7 +27,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
         Map<String, Object> data = new HashMap<>();
-        data.put("statusCode", HttpStatus.UNAUTHORIZED.value());
+        data.put("statusCode", "401");
         data.put("statusDescription", "UnAuthorized");
         data.put("date", convertDateToString(Date.from(Instant.now()), FULL_DATE_FORMAT));
         data.put("uuid", UUID.randomUUID());

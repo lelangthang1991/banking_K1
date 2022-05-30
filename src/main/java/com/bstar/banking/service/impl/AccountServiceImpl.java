@@ -5,6 +5,7 @@ import com.bstar.banking.entity.Account;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.AccountDTO;
+import com.bstar.banking.model.request.ChangePinCodeDTO;
 import com.bstar.banking.model.request.PinCodeDTO;
 import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
@@ -45,9 +46,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public RestResponse<?> checkPinCode(PinCodeDTO pinCodeDTO, Authentication authentication) {
         User user = userRepository.getUserByEmail(authentication.getName()).orElseThrow(() -> new NotFoundException("404", "INVALID_EMAIL"));
-        boolean isMatch = user.getAccounts().stream().anyMatch(acc -> {
-            return acc.getPinCode().equals(pinCodeDTO.getPinCode()) && acc.getAccountNumber().equals(pinCodeDTO.getAccountNumber());
-        });
+        boolean isMatch = user.getAccounts().stream().anyMatch(acc -> acc.getPinCode().equals(pinCodeDTO.getPinCode()) && acc.getAccountNumber().equals(pinCodeDTO.getAccountNumber()));
         if (isMatch) {
             return new RestResponse<>(OK, ACCOUNT_PIN_CODE_MATCH);
         } else {
@@ -139,24 +138,6 @@ public class AccountServiceImpl implements AccountService {
         return new RestResponse<>(OK, ACCOUNT_DISABLED_SUCCESS);
     }
 
-
-    @Override
-    public void saveBankAccount(Account account, RegisterBankAccountRq registerBankAccountRq, String email) {
-        RandomBankNumber randomBankNumber = new RandomBankNumber();
-        account.setAccountType(registerBankAccountRq.getAccountType());
-        account.setAccountNumber(randomBankNumber.randomBankNumber());
-        account.setBalance((double) 0);
-        account.setPinCode(registerBankAccountRq.getPinCode());
-        account.setIsActivated(true);
-        account.setCreateDate(new Date());
-        account.setCreatePerson(email);
-        account.setUpdateDate(new Date());
-        account.setUpdatePerson(email);
-        User user = userRepository.getUserByEmail(email).orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
-        account.setUser(user);
-        accountRepository.save(account);
-    }
-
     public RestResponse<?> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
                                         Authentication authentication) {
         if (!registerBankAccountRq.getPinCode().equals(registerBankAccountRq.getConfirmPinCode())) {
@@ -179,6 +160,22 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
         return new RestResponse<>(OK,
                 ACCOUNT_REGISTRATION_SUCCESSFUL,
+                modelMapper.map(account, AccountDTO.class));
+
+    }
+
+    @Override
+    public RestResponse<?> changePinCode(ChangePinCodeDTO changePinCodeDTO, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
+        Account account = user.getAccounts().stream()
+                .filter(us -> us.getAccountNumber().equals(changePinCodeDTO.getAccountNumber()))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(ACCOUNT_PIN_CODE_DOES_NOT_MATCH));
+        account.setPinCode(changePinCodeDTO.getNewPinCode());
+        accountRepository.save(account);
+        return new RestResponse<>(OK,
+                ACCOUNT_CHANGE_PIN_CODE_SUCCESSFUL,
                 modelMapper.map(account, AccountDTO.class));
     }
 }

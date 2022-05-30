@@ -1,5 +1,6 @@
 package com.bstar.banking.controller;
 
+import com.bstar.banking.model.request.ChangePinCodeDTO;
 import com.bstar.banking.model.request.PinCodeDTO;
 import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
@@ -54,8 +55,11 @@ public class AccountController {
     public ResponseEntity<RestResponse<?>> getAccountDetail(@PathVariable("accountNumber") String accountNumber) {
         return ResponseEntity.ok(accountService.findAccountByAccountNumber(accountNumber));
     }
-
-
+    @PutMapping("/change-pin-code")
+    public ResponseEntity<RestResponse<?>> changePinCode(@Valid @RequestBody ChangePinCodeDTO changePinCodeDTO,
+                                                        Authentication authentication) {
+        return ResponseEntity.ok(accountService.changePinCode(changePinCodeDTO, authentication));
+    }
     @PostMapping("/bank-register")
     public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
                                                         Authentication authentication) {

@@ -3,6 +3,7 @@ package com.bstar.banking.config;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.response.ExceptionResponse;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ import static org.springframework.http.HttpStatus.*;
 
 @ControllerAdvice
 public class ControllerAdviceHandler extends ResponseEntityExceptionHandler {
-    private Logger logger;
+    private Logger logger = LoggerFactory.getLogger(ControllerAdviceHandler.class);
     @ExceptionHandler(AuthenticationException.class)
     public static ResponseEntity<Object> generateAuthExceptionResponse(AuthenticationException ex) {
         return ResponseEntity.status(UNAUTHORIZED).body(new ExceptionResponse(UNAUTHORIZED, ex.getMessage()));
