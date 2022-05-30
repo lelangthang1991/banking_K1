@@ -139,9 +139,14 @@ public class AccountServiceImpl implements AccountService {
         return new RestResponse<>(OK, ACCOUNT_DISABLED_SUCCESS);
     }
 
-
-    @Override
-    public void saveBankAccount(Account account, RegisterBankAccountRq registerBankAccountRq, String email) {
+    public RestResponse<?> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+                                        Authentication authentication) {
+        if (!registerBankAccountRq.getPinCode().equals(registerBankAccountRq.getConfirmPinCode())) {
+            return new RestResponse<>(NOT_FOUND, PINCODE_DOES_NOT_MATCH);
+        }
+        String email = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        Account account = new Account();
         RandomBankNumber randomBankNumber = new RandomBankNumber();
         account.setAccountType(registerBankAccountRq.getAccountType());
         account.setAccountNumber(randomBankNumber.randomBankNumber());
@@ -152,20 +157,8 @@ public class AccountServiceImpl implements AccountService {
         account.setCreatePerson(email);
         account.setUpdateDate(new Date());
         account.setUpdatePerson(email);
-        User user = userRepository.getUserByEmail(email).orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
         account.setUser(user);
         accountRepository.save(account);
-    }
-
-
-    public RestResponse<?> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq, Authentication authentication) {
-        String email = authentication.getName();
-        userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
-        if (!registerBankAccountRq.getPinCode().equals(registerBankAccountRq.getConfirmPinCode())) {
-            return new RestResponse<>(NOT_FOUND, PINCODE_DOES_NOT_MATCH);
-        }
-        Account account = new Account();
-        this.saveBankAccount(account, registerBankAccountRq, email);
         return new RestResponse<>(OK,
                 ACCOUNT_REGISTRATION_SUCCESSFUL,
                 modelMapper.map(account, AccountDTO.class));
