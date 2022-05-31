@@ -7,8 +7,6 @@ import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.DepositMoneyDTO;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.RestResponse;
-import com.bstar.banking.model.response.TransferMoneyResponse;
-import com.bstar.banking.model.response.WithdrawDepositResponse;
 import com.bstar.banking.repository.AccountRepository;
 import com.bstar.banking.repository.TransactionRepository;
 import com.bstar.banking.repository.UserRepository;
@@ -130,17 +128,11 @@ public class TransactionImpl implements TransactionService {
             transaction.setAccount(getAccount);
 
             transactionRepository.save(transaction);
-
-
-            WithdrawDepositResponse withdrawResponse = new WithdrawDepositResponse();
-            withdrawResponse.setTransactionId(transaction.getTransactionId());
-            withdrawResponse.setAmount(transaction.getAmount());
-            withdrawResponse.setBalance(getAccount.getBalance());
-            withdrawResponse.setTransactionType(transaction.getTransactionType());
-            withdrawResponse.setCreateDate(transaction.getCreateDate());
-            withdrawResponse.setCreatePerson(transaction.getCreatePerson());
-            return new RestResponse<>(OK, WITHDRAW_SUCCESSFUL,
-                    withdrawResponse);
+            TransactionDTO transactionDTO;
+            transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
+            transactionDTO.setBalance(getAccount.getBalance());
+            return new RestResponse<>(OK, DEPOSIT_SUCCESSFUL,
+                    transactionDTO);
         } catch (Exception e) {
             return new RestResponse<>(BAD_REQUEST, WITHDRAW_FAIL);
 
@@ -159,7 +151,6 @@ public class TransactionImpl implements TransactionService {
                 .filter(us -> us.getAccountNumber().equals(transferMoneyDTO.getTransferNumber()))
                 .findFirst();
         Account accountTransfer = account.get();
-
 
         Account accountBeneficial = accountRepository.findById(transferMoneyDTO.
                         getBeneficiaryAccountNumber()).
@@ -198,18 +189,11 @@ public class TransactionImpl implements TransactionService {
             transaction.setBody(transferMoneyDTO.getBody());
             transactionRepository.save(transaction);
 
-            TransferMoneyResponse transferMoneyResponse = new TransferMoneyResponse(transaction.getTransactionId(),
-                    transaction.getAmount(),
-                    accountTransfer.getBalance(),
-                    transferMoneyDTO.getBody(),
-                    transaction.getTransactionType(),
-                    transaction.getBeneficiaryAccountNumber(),
-                    transaction.getBeneficiaryName(), transaction.getBeneficiaryEmail(),
-                    transaction.getBeneficiaryPhone(),
-                    accountTransfer.getUser().getEmail(),
-                    transaction.getCreateDate());
-            return new RestResponse<>(OK, TRANSFER_MONEY_SUCCESSFUL,
-                    transferMoneyResponse);
+            TransactionDTO transactionDTO;
+            transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
+            transactionDTO.setBalance(accountTransfer.getBalance());
+            return new RestResponse<>(OK, DEPOSIT_SUCCESSFUL,
+                    transactionDTO);
         } catch (Exception e) {
             return new RestResponse<>(BAD_REQUEST, TRANSFER_MONEY_FAIL);
         }
