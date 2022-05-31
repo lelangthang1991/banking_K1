@@ -36,30 +36,25 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 jwtToken = requestTokenHeader.substring(7);
                 username = jwtUtil.getEmailFromToken(jwtToken);
             }
-            else {
-                logger.warn("JWT Token does not begin with Bearer String");
-            }
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 if (jwtUtil.validateToken(jwtToken, userDetails)) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
+                            userDetails, userDetails.getPassword(), userDetails.getAuthorities());
                     usernamePasswordAuthenticationToken
                             .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                 }
             }
-        }
-        catch (ExpiredJwtException e) {
+        } catch (ExpiredJwtException e) {
             String isRefreshToken = request.getHeader("isRefreshToken");
             String requestURL = request.getRequestURL().toString();
             if (isRefreshToken != null && isRefreshToken.equals("true") && requestURL.contains("/api/v1/users/refresh-token")) {
                 allowForRefreshToken(e, request);
-            } else{
+            } else {
                 request.setAttribute("JWT Token has expired", e);
             }
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             request.setAttribute("Unable to get JWT Token", e);
         }
         filterChain.doFilter(request, response);

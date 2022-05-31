@@ -1,6 +1,7 @@
 package com.bstar.banking.controller;
 
 import com.bstar.banking.model.request.ChangePinCodeDTO;
+import com.bstar.banking.model.request.PagingRequest;
 import com.bstar.banking.model.request.PinCodeDTO;
 import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
-@CrossOrigin("*")
 @RestController
 @RequestMapping("/api/v1/accounts")
 public class AccountController {
@@ -46,20 +46,21 @@ public class AccountController {
     }
 
     @GetMapping("/get-page")
-    public ResponseEntity<RestResponse<ResponsePageAccount>> getPageAccount(@RequestParam int pageNumber,
-                                                                            @RequestParam int pageSize) {
-        return ResponseEntity.ok(accountService.findPageAccount(PageRequest.of(pageNumber, pageSize)));
+    public ResponseEntity<RestResponse<ResponsePageAccount>> getPageAccount(@Valid PagingRequest page) {
+        return ResponseEntity.ok(accountService.findPageAccount(PageRequest.of(page.getPageNumber(), page.getPageSize())));
     }
 
     @GetMapping("/{accountNumber}")
     public ResponseEntity<RestResponse<?>> getAccountDetail(@PathVariable("accountNumber") String accountNumber) {
         return ResponseEntity.ok(accountService.findAccountByAccountNumber(accountNumber));
     }
+
     @PutMapping("/change-pin-code")
     public ResponseEntity<RestResponse<?>> changePinCode(@Valid @RequestBody ChangePinCodeDTO changePinCodeDTO,
-                                                        Authentication authentication) {
+                                                         Authentication authentication) {
         return ResponseEntity.ok(accountService.changePinCode(changePinCodeDTO, authentication));
     }
+
     @PostMapping("/bank-register")
     public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
                                                         Authentication authentication) {

@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ResponsePageAccount {
     private int pageNumber;
-    private long pageSize;
+    private int pageSize;
     private int totalPages;
+    private long totalItem;
     private Object data;
 }
