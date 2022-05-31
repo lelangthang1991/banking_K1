@@ -32,10 +32,11 @@ public class TransactionController {
         RestResponse<?> response = transactionService.withdrawMoney(transferMoneyDTO, authentication);
         return ResponseEntity.ok(response);
     }
-    @PostMapping("/withdraw-money")
-    public ResponseEntity<?> transferwMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
 
-      RestResponse<?> response = transactionService.transferMoney(transferMoneyDTO, authentication);
+    @PostMapping("/transfer-money")
+    public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
+
+        RestResponse<?> response = transactionService.transferMoney(transferMoneyDTO, authentication);
         return ResponseEntity.ok(response);
     }
 
