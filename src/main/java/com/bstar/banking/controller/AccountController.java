@@ -4,14 +4,10 @@ import com.bstar.banking.model.request.PinCodeDTO;
 import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
-import com.bstar.banking.repository.AccountRepository;
-import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.AccountService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -20,14 +16,6 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/api/v1/accounts")
 public class AccountController {
-
-    @Autowired
-    AccountRepository accountrepo;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    PasswordEncoder passwordEncoder;
-
     private final AccountService accountService;
 
     public AccountController(AccountService accountService) {

@@ -67,7 +67,7 @@ public class UserController {
     }
 
     @GetMapping("/activate-user/{email}/{verify}")
-    public ResponseEntity<RestResponse<?>> activateUser(@PathVariable String email, @PathVariable String verify) {
+    public ResponseEntity<?> activateUser(@PathVariable String email, @PathVariable String verify) {
         RestResponse<?> response = userService.activateUser(email, verify);
         if (response.getStatusCode().equals(OK)) {
             return ResponseEntity.ok(response);
@@ -87,7 +87,7 @@ public class UserController {
     }
 
     @GetMapping("/info-user")
-    public ResponseEntity<RestResponse<?>> infoUser(Authentication authentication) {
+    public ResponseEntity<?> infoUser(Authentication authentication) {
         return ResponseEntity.ok(userService.infoUser(authentication));
     }
 }

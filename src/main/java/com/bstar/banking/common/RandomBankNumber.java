@@ -15,8 +15,7 @@ public class RandomBankNumber {
     private String banknumber;
 
 
-
-    public String randomBankNumber(){
+    public String randomBankNumber() {
         return RandomStringUtils.randomNumeric(13);
     }
 

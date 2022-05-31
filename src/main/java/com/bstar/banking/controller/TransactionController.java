@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+import static com.bstar.banking.common.StatusCodeString.OK;
+
 @CrossOrigin("*")
 @RequiredArgsConstructor
 @RestController
@@ -23,20 +25,30 @@ public class TransactionController {
     public ResponseEntity<?> depositMoney(@Valid @RequestBody DepositMoneyDTO depositMoneyDTO, Authentication authentication) {
 
         RestResponse<?> response = transactionService.depositMoney(depositMoneyDTO, authentication);
-        return ResponseEntity.ok(response);
+        if (response.getStatusCode().equals(OK)) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().body(response);
     }
 
     @PostMapping("/withdraw-money")
     public ResponseEntity<?> withdrawMoney(@Valid @RequestBody DepositMoneyDTO transferMoneyDTO, Authentication authentication) {
 
         RestResponse<?> response = transactionService.withdrawMoney(transferMoneyDTO, authentication);
-        return ResponseEntity.ok(response);
+        if (response.getStatusCode().equals(OK)) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().body(response);
     }
-    @PostMapping("/withdraw-money")
-    public ResponseEntity<?> transferwMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
 
-      RestResponse<?> response = transactionService.transferMoney(transferMoneyDTO, authentication);
-        return ResponseEntity.ok(response);
+    @PostMapping("/transfer-money")
+    public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
+
+        RestResponse<?> response = transactionService.transferMoney(transferMoneyDTO, authentication);
+        if (response.getStatusCode().equals(OK)) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().body(response);
     }
 
 }

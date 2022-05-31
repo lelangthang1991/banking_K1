@@ -30,7 +30,4 @@ public class UserString {
     public static final String GET_USER_INFO_SUCCESS = "Get user info success";
 
 
-
-
-
 }
