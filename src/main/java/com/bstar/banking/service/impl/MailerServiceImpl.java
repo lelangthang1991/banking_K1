@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.bstar.banking.common.MailerString.SEND_MAIL_SUCCESS;
+import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
+import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.GET_USER_EMAIL_NOT_FOUND;
 
 @RequiredArgsConstructor
@@ -80,21 +82,23 @@ public class MailerServiceImpl implements MailerService {
     }
 
     @Override
-    public void sendWelcome(User account) {
-        String url = "http://localhost:8080/account/activate/" + account.getEmail() + "?verify=";
+    public void sendWelcome(User account, String verifycode) {
+        String url = "http://localhost:8080/api/v1/users/activate-user/" + account.getEmail() + "/" + verifycode;
         try {
             String to = account.getEmail();
-            String text = "<hr><a href='" + url + "'>Kích hoạt tài khoản</a>";
+
+            String text = "<hr><a href='" + url + "'>Click here to activate your account!</a>";
 
             MailDefault mail = new MailDefault(to, "Welcome to Web Banking", text);
-            this.addToQueue(mail);
+
+            this.send(mail);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public RestResponse<ForgotPasswordResponse> sendVerifyCode(String email) {
+    public RestResponse<?> sendVerifyCode(String email) {
         try {
             String verifyCode = RandomStringUtils.randomAlphabetic(6);
             String text = "Your verify code: " + "<strong>" + verifyCode + "</strong>";
@@ -103,14 +107,11 @@ public class MailerServiceImpl implements MailerService {
             User user = userRepository.findById(mail.getTo()).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
             user.setVerifyCode(verifyCode);
             userRepository.save(user);
-            RestResponse<ForgotPasswordResponse> CommonResponse = new RestResponse<>();
-            CommonResponse.setData(new ForgotPasswordResponse("OK", SEND_MAIL_SUCCESS, user.getEmail()));
-            return CommonResponse;
+            return new RestResponse<>(OK, SEND_MAIL_SUCCESS, new ForgotPasswordResponse(user.getEmail()));
         } catch (Exception e) {
             e.printStackTrace();
             RestResponse<ForgotPasswordResponse> CommonResponse = new RestResponse<>();
-            CommonResponse.setData(new ForgotPasswordResponse("INVALID_EMAIL", e.getMessage()));
-            return CommonResponse;
+            return new RestResponse<>(BAD_REQUEST, "INVALID_EMAIL");
         }
     }
 }

@@ -3,7 +3,6 @@ package com.bstar.banking.service;
 
 import com.bstar.banking.entity.User;
 import com.bstar.banking.model.request.MailDefault;
-import com.bstar.banking.model.response.ForgotPasswordResponse;
 import com.bstar.banking.model.response.RestResponse;
 
 import javax.mail.MessagingException;
@@ -26,7 +25,7 @@ public interface MailerService {
      */
     void addToQueue(MailDefault mail);
 
-    void sendWelcome(User account);
+    void sendWelcome(User account,String verifycode);
 
-    RestResponse<ForgotPasswordResponse> sendVerifyCode(String email);
+    RestResponse<?> sendVerifyCode(String email);
 }

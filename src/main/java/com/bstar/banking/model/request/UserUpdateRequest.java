@@ -5,26 +5,26 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.Date;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDTO implements Serializable {
-    private String email;
-    private String password;
+public class UserUpdateRequest {
+    @NotBlank
     private String firstName;
+    @NotBlank
     private String lastName;
     private Date dob;
-    private Integer role;
     private Integer gender;
+    @NotBlank
     private String address;
+    @Size(min = 10, max = 14, message = "phone must be number and between 10 and 20 characters")
     private String phone;
-    private Boolean isActivated;
-    private String create_person;
-    private String update_person;
-    private Date update_date;
-    private Date create_date;
+    private String updatePerson;
+    private Date updateDate;
+
 }

@@ -2,7 +2,7 @@ package com.bstar.banking.controller;
 
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
-import com.bstar.banking.model.response.CommonResponse;
+import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.TransactionService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,20 @@ public class TransactionController {
     @PostMapping("/deposit-money")
     public ResponseEntity<?> depositMoney(@Valid @RequestBody DepositMoneyDTO depositMoneyDTO, Authentication authentication) {
 
-        RestResponse<CommonResponse> response = transactionService.depositMoney(depositMoneyDTO, authentication);
+        RestResponse<?> response = transactionService.depositMoney(depositMoneyDTO, authentication);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/withdraw-money")
+    public ResponseEntity<?> withdrawMoney(@Valid @RequestBody DepositMoneyDTO transferMoneyDTO, Authentication authentication) {
+
+        RestResponse<?> response = transactionService.withdrawMoney(transferMoneyDTO, authentication);
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/withdraw-money")
+    public ResponseEntity<?> transferwMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
+
+      RestResponse<?> response = transactionService.transferMoney(transferMoneyDTO, authentication);
         return ResponseEntity.ok(response);
     }
 

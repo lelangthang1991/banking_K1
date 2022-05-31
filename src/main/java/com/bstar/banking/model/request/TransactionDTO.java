@@ -15,6 +15,7 @@ import java.io.Serializable;
 public class TransactionDTO implements Serializable {
     @NotNull
     private Integer transactionId;
+    private String transferNumber;
     private Double amount;
     private String pinCode;
     private String unitCurrency;

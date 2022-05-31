@@ -1,27 +1,33 @@
 package com.bstar.banking.service.impl;
 
 
+import com.bstar.banking.common.RandomVerifycode;
 import com.bstar.banking.entity.User;
+import com.bstar.banking.exception.BusinessException;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.jwt.JwtUtil;
-import com.bstar.banking.model.request.ForgotPasswordDTO;
-import com.bstar.banking.model.request.LoginDTO;
-import com.bstar.banking.model.response.ForgotPasswordResponse;
+import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.LoginResponse;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.security.UserDetailsServiceImpl;
 import com.bstar.banking.service.AbstractCommonService;
+import com.bstar.banking.service.MailerService;
 import com.bstar.banking.service.UserService;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Date;
 
 import static com.bstar.banking.common.JwtString.GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS;
+import static com.bstar.banking.common.StatusCodeString.*;
 import static com.bstar.banking.common.UserString.*;
 
 
@@ -33,17 +39,24 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationManager authenticationManager;
 
+    private final ModelMapper modelMapper;
+    private final RandomVerifycode verifyCode = new RandomVerifycode();
+
+    @Autowired
+    MailerService mailerService;
+
     public UserServiceImpl(UserRepository userRepository,
                            JwtUtil jwtUtil,
                            UserDetailsServiceImpl userDetailsService,
                            JavaMailSender sender,
-                           AuthenticationManager authenticationManager, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager1) {
+                           AuthenticationManager authenticationManager, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager1, ModelMapper modelMapper) {
         super(sender, authenticationManager);
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager1;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -58,25 +71,105 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
         Date refreshTokenExpire = jwtUtil.getExpirationDateFromToken(refreshToken);
         long refreshTokenExpireMillis = refreshTokenExpire.getTime();
-        LoginResponse data = new LoginResponse("200",
-                GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS,
-                token,
+        LoginResponse data = new LoginResponse(token,
                 tokenExpireMillis,
                 refreshToken,
                 refreshTokenExpireMillis);
-        return new RestResponse<>(data);
+        return new RestResponse<>(OK, GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS, data);
     }
 
     @Override
-    public RestResponse<ForgotPasswordResponse> forgotPassWord(ForgotPasswordDTO forgotPasswordDTO) {
-        User user = userRepository.findById(forgotPasswordDTO.getEmail()).orElseThrow(() -> new NotFoundException("404", GET_USER_EMAIL_NOT_FOUND));
+    public RestResponse<?> forgotPassWord(ForgotPasswordDTO forgotPasswordDTO) {
+        User user = userRepository.findById(forgotPasswordDTO.getEmail())
+                .orElseThrow(() -> new NotFoundException("404", GET_USER_EMAIL_NOT_FOUND));
         if (user.getVerifyCode().equals(forgotPasswordDTO.getVerifyCode())) {
             user.setVerifyCode("");
-            user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getPassword()));
+            user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getNewPassword()));
             userRepository.save(user);
-            return new RestResponse<>(new ForgotPasswordResponse("200", CHANGE_PASSWORD_SUCCESS));
+            return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
         } else {
-            return new RestResponse<>(new ForgotPasswordResponse("404", VERIFY_PASSWORD_DOES_NOT_MATCH));
+            return new RestResponse<>(UNAUTHORIZED, VERIFY_PASSWORD_DOES_NOT_MATCH);
         }
+    }
+
+
+    @Override
+    public RestResponse<?> signupUser(SignupRequest signupRequest) {
+        boolean isMailRegistered = userRepository.findById(signupRequest.getEmail()).isPresent();
+        boolean isPhoneRegistered = userRepository.findByPhone(signupRequest.getPhone()).isPresent();
+        if (isMailRegistered) {
+            return new RestResponse<>(BAD_REQUEST, EMAIl_WAS_REGISTERED);
+        } else if (isPhoneRegistered) {
+            return new RestResponse<>(BAD_REQUEST, PHONE_WAS_REGISTERED);
+
+        } else if (!signupRequest.getPassword().equals(signupRequest.getConfirm())) {
+            return new RestResponse<>(BAD_REQUEST, PASSWORD_DOES_NOT_MATCH);
+        } else {
+            try {
+                User user = new User();
+                String verifyCode = this.verifyCode.Random();
+                user.setEmail(signupRequest.getEmail());
+                user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+                user.setFirstName(signupRequest.getFirstName());
+                user.setLastName(signupRequest.getLastName());
+                user.setDob(signupRequest.getDob());
+                user.setGender(signupRequest.getGender());
+                user.setAddress(signupRequest.getAddress());
+                user.setPhone(signupRequest.getPhone());
+                user.setIsActivated(false);
+                user.setCreate_date(new Date());
+                user.setUpdate_date(new Date());
+                user.setCreate_person(signupRequest.getEmail());
+                user.setUpdate_person(signupRequest.getEmail());
+                user.setVerifyCode(verifyCode);
+                userRepository.save(user);
+                mailerService.sendWelcome(user, verifyCode);
+                return new RestResponse<>(OK,
+                        GET_USER_INFO_SUCCESS,
+                        modelMapper.map(user, UserDTO.class));
+            } catch (Exception e) {
+                return new RestResponse<>(BAD_REQUEST, REGISTRATION_FAILED);
+            }
+        }
+    }
+
+    @Override
+    public RestResponse<?> activateUser(@PathVariable String email, @PathVariable String verify) {
+        User user = userRepository.getUserByEmail(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        if (user.getVerifyCode().equals(verify)) {
+            user.setRole(1);
+            user.setIsActivated(true);
+            userRepository.save(user);
+            return new RestResponse<>(OK, SUCCESSFUL_ACCOUNT_ACTIVATION);
+        }
+        return new RestResponse<>(BAD_REQUEST, ACCOUNT_ACTIVATION_FAILED);
+    }
+
+    @Override
+    public RestResponse<?> updateUser(UserUpdateRequest updateRequest, Authentication authentication) {
+        User user = userRepository.getUserByEmail(authentication.getName())
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+        user.setEmail(user.getEmail());
+        user.setFirstName(updateRequest.getFirstName());
+        user.setLastName(user.getLastName());
+        user.setDob(updateRequest.getDob());
+        user.setGender(updateRequest.getGender());
+        user.setAddress(updateRequest.getAddress());
+        user.setPhone(updateRequest.getPhone());
+        user.setUpdate_date(new Date());
+        user.setUpdate_person(user.getEmail());
+        userRepository.save(user);
+        return new RestResponse<>(OK,
+                GET_USER_INFO_SUCCESS,
+                modelMapper.map(user, UserDTO.class));
+    }
+
+    @Override
+    public RestResponse<?> infoUser(Authentication authentication) {
+        User user = userRepository.getUserByEmail(authentication.getName())
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+        return new RestResponse<>(OK,
+                GET_USER_INFO_SUCCESS,
+                modelMapper.map(user, UserDTO.class));
     }
 }

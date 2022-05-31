@@ -1,17 +1,20 @@
 package com.bstar.banking.controller.admin;
 
-import com.bstar.banking.model.response.CommonResponse;
+import com.bstar.banking.model.request.AccountDTO;
+import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.AccountService;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @CrossOrigin("*")
 @RequestMapping("/api/v1/admin/accounts")
 @RestController
-@PreAuthorize("isAuthenticated()")
 public class AccountAdminController {
 
     private final AccountService accountService;
@@ -22,12 +25,12 @@ public class AccountAdminController {
 
     @GetMapping("/get-page")
     public RestResponse<ResponsePageAccount> getPageAccount(@RequestParam int pageNumber,
-                                                            @RequestParam int pageSize){
+                                                            @RequestParam int pageSize) {
         return accountService.findPageAccount(PageRequest.of(pageNumber, pageSize));
     }
 
     @GetMapping("/{accountNumber}")
-    public RestResponse<CommonResponse> getAccountDetail(@PathVariable("accountNumber") String accountNumber){
+    public RestResponse<?> getAccountDetail(@PathVariable("accountNumber") String accountNumber) {
         return accountService.findAccountByAccountNumber(accountNumber);
     }
 
@@ -55,8 +58,19 @@ public class AccountAdminController {
         return accountService.findAccountByKeyword(keyword, pageRequest);
     }
 
+    @PutMapping
+    public ResponseEntity<RestResponse<?>> accountUpdate(@Valid @RequestBody AccountDTO accountDTO, Authentication authentication) {
+        return ResponseEntity.ok(accountService.accountUpdate(accountDTO, authentication));
+    }
+
     @DeleteMapping("/{accountNumber}")
-    public RestResponse<CommonResponse> accountDisabled(@PathVariable("accountNumber") String accountNumber) {
+    public RestResponse<?> accountDisabled(@PathVariable("accountNumber") String accountNumber) {
         return accountService.accountDisabled(accountNumber);
+    }
+
+    @PostMapping("/bank-register")
+    public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+                                                        Authentication authentication) {
+        return ResponseEntity.ok(accountService.bankRegister(registerBankAccountRq, authentication));
     }
 }
