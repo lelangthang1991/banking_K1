@@ -2,11 +2,14 @@ package com.bstar.banking.controller;
 
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
-import com.bstar.banking.model.request.ListTransactionDTO;
+import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
+import com.bstar.banking.model.request.ListTransactionPagingRequest;
 import com.bstar.banking.model.request.TransactionDTO;
+import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +18,6 @@ import javax.validation.Valid;
 
 import static com.bstar.banking.common.StatusCodeString.OK;
 
-@CrossOrigin("*")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transactions")
@@ -54,23 +56,24 @@ public class TransactionController {
 
 
     @GetMapping("/list-transaction")
-    public ResponseEntity<?> listTransaction(@Valid @RequestBody ListTransactionDTO listTransactionDTO, Authentication authentication) {
+    public RestResponse<ResponsePageAccount> listTransaction(@Valid ListTransactionPagingRequest page, Authentication authentication) {
 
-        RestResponse<?> response = transactionService.listTransaction(listTransactionDTO, authentication);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.badRequest().body(response);
+        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
+        return transactionService.listTransactionByAccountAndType(page, authentication, pageRequest);
     }
 
     @GetMapping("/list-all-transaction")
-    public ResponseEntity<?> listAllTransaction(@Valid @RequestBody ListTransactionDTO listTransactionDTO, Authentication authentication) {
+    public RestResponse<ResponsePageAccount> listAllTransaction(@Valid ListTransactionPagingRequest page, Authentication authentication) {
 
-        RestResponse<?> response = transactionService.listAllTransaction(listTransactionDTO, authentication);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.badRequest().body(response);
+        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
+        return transactionService.listAllTransactionByAccount(page, authentication, pageRequest);
+    }
+
+   @GetMapping("/list-all-transaction-by-date")
+    public RestResponse<ResponsePageAccount> listTransactionByAccountAndTypeAndDate(@Valid  ListTransactionByDatePagingRequest page, Authentication authentication) {
+
+        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
+        return transactionService.listTransactionByAccountAndTypeAndDate(page, authentication, pageRequest);
     }
 
 }

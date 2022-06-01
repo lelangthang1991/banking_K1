@@ -5,8 +5,10 @@ import com.bstar.banking.entity.Transaction;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.DepositMoneyDTO;
-import com.bstar.banking.model.request.ListTransactionDTO;
+import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
+import com.bstar.banking.model.request.ListTransactionPagingRequest;
 import com.bstar.banking.model.request.TransactionDTO;
+import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.AccountRepository;
 import com.bstar.banking.repository.TransactionRepository;
@@ -14,6 +16,8 @@ import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.TransactionService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +25,7 @@ import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.bstar.banking.common.AccountString.ACCOUNT_NUMBER_NOT_FOUND;
 import static com.bstar.banking.common.StatusCodeString.*;
@@ -214,22 +219,26 @@ public class TransactionImpl implements TransactionService {
 
 
     @Override
-    public RestResponse<?> listTransaction(ListTransactionDTO listTransactionDTO, Authentication authentication) {
-
+    public RestResponse<ResponsePageAccount> listTransactionByAccountAndType(ListTransactionPagingRequest listTransactionPagingRequest, Authentication authentication, Pageable pageable) {
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
 
-        Optional<Account> account = user.getAccounts().stream()
-                .filter(us -> us.getAccountNumber().equals(listTransactionDTO.getAccountNumber()))
-                .findFirst();
-
         try {
-            List<Transaction> list = transactionRepository.listTransaction(listTransactionDTO.getTransactionType(), listTransactionDTO.getAccountNumber(), email);
-            if (list.isEmpty()) {
-                return new RestResponse<>(NOT_FOUND, TRANSACTION_LIST_NOT_FOUND);
-            }
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, list);
+            Page<Transaction> listPage = transactionRepository.listTransactionByAccountAndType(listTransactionPagingRequest.getTransactionType()
+                    , listTransactionPagingRequest.getAccountNumber(), email, pageable);
 
+
+            List<TransactionDTO> listDTO = listPage.getContent()
+                    .parallelStream()
+                    .map(list -> modelMapper.map(list, TransactionDTO.class))
+                    .collect(Collectors.toList());
+
+            listDTO.forEach(l -> l.setOwnerNumber(listTransactionPagingRequest.getAccountNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageAccount(listPage.getNumber(),
+                    listDTO.size(),
+                    listPage.getTotalPages(),
+                    listDTO.size(),
+                    listDTO));
         } catch (Exception e) {
             return new RestResponse<>(BAD_REQUEST, GET_LIST_FAIL);
         }
@@ -239,21 +248,24 @@ public class TransactionImpl implements TransactionService {
 
 
     @Override
-    public RestResponse<?> listAllTransaction(ListTransactionDTO listTransactionDTO, Authentication authentication) {
+    public RestResponse<ResponsePageAccount> listAllTransactionByAccount(ListTransactionPagingRequest listTransactionPagingRequest, Authentication authentication, Pageable pageable) {
 
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-
-        Optional<Account> account = user.getAccounts().stream()
-                .filter(us -> us.getAccountNumber().equals(listTransactionDTO.getAccountNumber()))
-                .findFirst();
-
         try {
-            List<Transaction> list = transactionRepository.listAllTransaction(listTransactionDTO.getAccountNumber(), email);
-            if (list.isEmpty()) {
-                return new RestResponse<>(NOT_FOUND, TRANSACTION_LIST_NOT_FOUND);
-            }
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, list);
+            Page<Transaction> listPage = transactionRepository.listAllTransactionByAccount(listTransactionPagingRequest.getAccountNumber(), email, pageable);
+            List<TransactionDTO> listDTO = listPage.getContent()
+                    .parallelStream()
+                    .map(list -> modelMapper.map(list, TransactionDTO.class))
+                    .collect(Collectors.toList());
+
+
+            listDTO.forEach(l -> l.setOwnerNumber(listTransactionPagingRequest.getAccountNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageAccount(listPage.getNumber(),
+                    listDTO.size(),
+                    listPage.getTotalPages(),
+                    listDTO.size(),
+                    listDTO));
 
         } catch (Exception e) {
             return new RestResponse<>(BAD_REQUEST, GET_LIST_FAIL);
@@ -262,4 +274,31 @@ public class TransactionImpl implements TransactionService {
 
     }
 
+    @Override
+    public RestResponse<ResponsePageAccount> listTransactionByAccountAndTypeAndDate(ListTransactionByDatePagingRequest lDate, Authentication authentication, Pageable pageable) {
+        String email = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
+
+        try {
+            Page<Transaction> listPage = transactionRepository.getTransactionBetween(lDate.getAccountNumber()
+                    , email, lDate.getStartDate(), lDate.getEndDate(), pageable);
+
+
+            List<TransactionDTO> listDTO = listPage.getContent()
+                    .parallelStream()
+                    .map(list -> modelMapper.map(list, TransactionDTO.class))
+                    .collect(Collectors.toList());
+
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getAccountNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageAccount(listPage.getNumber(),
+                    listDTO.size(),
+                    listPage.getTotalPages(),
+                    listDTO.size(),
+                    listDTO));
+        } catch (Exception e) {
+            return new RestResponse<>(BAD_REQUEST, GET_LIST_FAIL);
+        }
+
+
+    }
 }
