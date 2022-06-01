@@ -22,6 +22,7 @@ import static com.bstar.banking.common.StatusCodeString.OK;
 public class UserController {
     private final UserService userService;
     private final MailerService mailerService;
+
     @PostMapping("/login")
     public ResponseEntity<RestResponse<LoginResponse>> login(@Valid @RequestBody LoginDTO loginRequest) throws Exception {
         return ResponseEntity.ok(userService.generateTokenAndRefreshToken(loginRequest));
@@ -30,10 +31,9 @@ public class UserController {
     @PostMapping("/send-mail")
     public ResponseEntity<RestResponse<?>> sendMail(@RequestBody @Valid EmailRequest mailer) throws MessagingException {
         RestResponse<?> response = mailerService.sendVerifyCode(mailer.getEmail());
-        if(response.getStatusCode().equals(OK)){
+        if (response.getStatusCode().equals(OK)) {
             return ResponseEntity.ok(response);
-        }
-        else{
+        } else {
             return ResponseEntity.badRequest().body(response);
         }
     }
@@ -41,19 +41,17 @@ public class UserController {
     @PostMapping("/forgot-password")
     public ResponseEntity<RestResponse<?>> forgotPassword(@Valid @RequestBody ForgotPasswordDTO forgotDTO) {
         RestResponse<?> response = userService.forgotPassWord(forgotDTO);
-        if(response.getStatusCode().equals(OK)){
+        if (response.getStatusCode().equals(OK)) {
             return ResponseEntity.ok(response);
-        }
-        else{
+        } else {
             return ResponseEntity.badRequest().body(response);
         }
     }
 
-    @PostMapping("/refresh-token")
+    @GetMapping("/refresh-token")
     public ResponseEntity<?> refreshToken() {
-        return ResponseEntity.ok("data");
+        return ResponseEntity.ok(userService.refreshToken());
     }
-
 
     @PostMapping("/signup-user")
     public ResponseEntity<RestResponse<?>> signupUser(@Valid @RequestBody SignupRequest signupRequest) {
@@ -89,9 +87,15 @@ public class UserController {
     public ResponseEntity<?> infoUser(Authentication authentication) {
         return ResponseEntity.ok(userService.infoUser(authentication));
     }
+
     @PostMapping("/change-password")
     public ResponseEntity<RestResponse<?>> changePasswordByOldPassword(Authentication authentication,
-                                                                      @Valid @RequestBody ChangePasswordDTO changePasswordDTO) throws Exception {
+                                                                       @Valid @RequestBody ChangePasswordDTO changePasswordDTO) throws Exception {
         return ResponseEntity.ok(userService.changePasswordByOldPassword(authentication, changePasswordDTO));
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<RestResponse<?>> logout() {
+        return ResponseEntity.ok(userService.logout());
     }
 }

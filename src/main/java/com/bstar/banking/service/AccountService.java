@@ -17,12 +17,16 @@ public interface AccountService {
     RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(String keyword, boolean isActivated, Pageable pageable);
 
     RestResponse<?> findAccountByEmail(String email);
+
     RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable);
 
     RestResponse<?> findAccountByAccountNumber(String accountNumber);
+
     RestResponse<?> accountUpdate(AccountDTO accountDTO, Authentication authentication);
+
     RestResponse<?> accountDisabled(String accountNumber);
 
     RestResponse<?> bankRegister(RegisterBankAccountRq bankRequest, Authentication authentication);
-    RestResponse<?> changePinCode(ChangePinCodeDTO changePinCodeDTO,Authentication authentication);
+
+    RestResponse<?> changePinCode(ChangePinCodeDTO changePinCodeDTO, Authentication authentication);
 }
