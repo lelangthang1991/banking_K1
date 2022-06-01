@@ -1,15 +1,13 @@
 package com.bstar.banking.repository;
 
 import com.bstar.banking.entity.Account;
-import com.bstar.banking.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
@@ -22,6 +20,7 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     Page<Account> findAccountByKeywordAndActivated(String keyword, boolean activated, Pageable pageable);
 
     @Query("SELECT c FROM Account c WHERE c.user.email = ?1")
-    List<Account> findAccountByEmail(String email);
+    Optional<Account> findAccountByEmail(String email);
+
 
 }

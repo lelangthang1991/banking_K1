@@ -1,36 +1,44 @@
-package com.bstar.banking.entity;
+package com.bstar.banking.model.request;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.Date;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table
-public class Transaction {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer transactionId;
+public class TransactionDTO {
+    @NotBlank
+    @Size(min = 13, max = 16)
+    private String transferNumber;
+
+    @Min(value = 0)
     private Double amount;
+    private Double balance;
+
+    @NotBlank
+    @Size(max = 4)
     private String pinCode;
+    @NotBlank
+    @Size(max = 200)
     private String body;
+
     private String unitCurrency;
-    private Boolean status;
+    private Integer status;
     private Integer transactionType;
+    @NotBlank
+    @Size(min = 9, max = 16)
     private String beneficiaryAccountNumber;
     private String beneficiaryName;
     private String beneficiaryEmail;
     private String beneficiaryPhone;
     private String createPerson;
     private Date createDate;
-
-    @ManyToOne
-    @JoinColumn(name = "account_number")
-    Account account;
-
 }

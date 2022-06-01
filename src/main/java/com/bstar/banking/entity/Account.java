@@ -1,11 +1,13 @@
 package com.bstar.banking.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -27,4 +29,8 @@ public class Account {
     @ManyToOne
     @JoinColumn(name = "user_email")
     private User user;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "account")
+    List<Transaction> transactions;
 }

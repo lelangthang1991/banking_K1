@@ -21,9 +21,9 @@ public abstract class AbstractCommonService {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (DisabledException e) {
-            throw new DisabledException(USER_DISABLED, e);
+            throw new Exception(USER_DISABLED, e);
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException(INVALID_CREDENTIAL, e);
+            throw new Exception(INVALID_CREDENTIAL, e);
         }
     }
 }

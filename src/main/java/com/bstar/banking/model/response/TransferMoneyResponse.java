@@ -1,26 +1,22 @@
-package com.bstar.banking.entity;
+package com.bstar.banking.model.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
 import java.util.Date;
 
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table
-public class Transaction {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class TransferMoneyResponse {
+
     private Integer transactionId;
     private Double amount;
-    private String pinCode;
+    private Double balance;
     private String body;
-    private String unitCurrency;
-    private Boolean status;
     private Integer transactionType;
     private String beneficiaryAccountNumber;
     private String beneficiaryName;
@@ -28,9 +24,4 @@ public class Transaction {
     private String beneficiaryPhone;
     private String createPerson;
     private Date createDate;
-
-    @ManyToOne
-    @JoinColumn(name = "account_number")
-    Account account;
-
 }
