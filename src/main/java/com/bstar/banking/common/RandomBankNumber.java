@@ -5,17 +5,14 @@ import lombok.Data;
 import org.apache.commons.lang3.RandomStringUtils;
 
 @Data
-
 @AllArgsConstructor
 public class RandomBankNumber {
+    private String bankNumber;
     public RandomBankNumber() {
-        this.banknumber = RandomStringUtils.randomNumeric(13);
+        this.bankNumber = RandomStringUtils.randomNumeric(13);
     }
 
-    private String banknumber;
-
-
-    public String randomBankNumber() {
+    public String randomBankNumber(){
         return RandomStringUtils.randomNumeric(13);
     }
 

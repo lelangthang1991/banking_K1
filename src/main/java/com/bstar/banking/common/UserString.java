@@ -11,6 +11,7 @@ public class UserString {
     public static final String EMAIl_WAS_REGISTERED = "Email was registered";
     public static final String PHONE_WAS_REGISTERED = "Phone number was registered";
     public static final String PASSWORD_DOES_NOT_MATCH = "Password does not match";
+    public static final String CONFIRM_PASSWORD_DOES_NOT_MATCH = "Confirm password does not match";
     public static final String PLEASE_CHECK_YOUR_EMAIL = "Please check your email to activate your account!";
 
     public static final String SUCCESSFUL_ACCOUNT_ACTIVATION = "Successful account activation";

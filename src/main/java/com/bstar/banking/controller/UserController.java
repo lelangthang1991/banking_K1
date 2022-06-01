@@ -16,7 +16,6 @@ import javax.validation.Valid;
 import static com.bstar.banking.common.StatusCodeString.OK;
 
 
-@CrossOrigin("*")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/users")
@@ -89,5 +88,10 @@ public class UserController {
     @GetMapping("/info-user")
     public ResponseEntity<?> infoUser(Authentication authentication) {
         return ResponseEntity.ok(userService.infoUser(authentication));
+    }
+    @PostMapping("/change-password")
+    public ResponseEntity<RestResponse<?>> changePasswordByOldPassword(Authentication authentication,
+                                                                      @Valid @RequestBody ChangePasswordDTO changePasswordDTO) throws Exception {
+        return ResponseEntity.ok(userService.changePasswordByOldPassword(authentication, changePasswordDTO));
     }
 }

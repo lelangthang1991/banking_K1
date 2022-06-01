@@ -1,7 +1,7 @@
 package com.bstar.banking.service;
 
-import com.bstar.banking.entity.Account;
 import com.bstar.banking.model.request.AccountDTO;
+import com.bstar.banking.model.request.ChangePinCodeDTO;
 import com.bstar.banking.model.request.PinCodeDTO;
 import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
@@ -23,7 +23,6 @@ public interface AccountService {
     RestResponse<?> accountUpdate(AccountDTO accountDTO, Authentication authentication);
     RestResponse<?> accountDisabled(String accountNumber);
 
-    void saveBankAccount(Account account, RegisterBankAccountRq registerBankAccountRq, String email);
-
     RestResponse<?> bankRegister(RegisterBankAccountRq bankRequest, Authentication authentication);
+    RestResponse<?> changePinCode(ChangePinCodeDTO changePinCodeDTO,Authentication authentication);
 }

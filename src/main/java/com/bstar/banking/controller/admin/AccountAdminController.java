@@ -1,6 +1,7 @@
 package com.bstar.banking.controller.admin;
 
 import com.bstar.banking.model.request.AccountDTO;
+import com.bstar.banking.model.request.PagingRequest;
 import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
@@ -12,11 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
-@CrossOrigin("*")
 @RequestMapping("/api/v1/admin/accounts")
 @RestController
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class AccountAdminController {
-
     private final AccountService accountService;
 
     public AccountAdminController(AccountService accountService) {
@@ -24,9 +24,8 @@ public class AccountAdminController {
     }
 
     @GetMapping("/get-page")
-    public RestResponse<ResponsePageAccount> getPageAccount(@RequestParam int pageNumber,
-                                                            @RequestParam int pageSize) {
-        return accountService.findPageAccount(PageRequest.of(pageNumber, pageSize));
+    public RestResponse<ResponsePageAccount> getPageAccount(@Valid PagingRequest page) {
+        return accountService.findPageAccount(PageRequest.of(page.getPageNumber(), page.getPageSize()));
     }
 
     @GetMapping("/{accountNumber}")
@@ -35,27 +34,16 @@ public class AccountAdminController {
     }
 
     @GetMapping("/activated/find-by-keyword")
-    public RestResponse<ResponsePageAccount> findAccountByKeywordActivated(@RequestParam(required = false) String keyword,
-                                                                           @RequestParam boolean isActivated,
-                                                                           @RequestParam int pageNumber,
-                                                                           @RequestParam int pageSize) {
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-        return accountService.findAccountByKeywordAndActivated(keyword, isActivated, pageRequest);
+    public RestResponse<ResponsePageAccount> findAccountByKeywordActivated(@Valid PagingRequest page,
+                                                                           @RequestParam boolean isActivated) {
+        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
+        return accountService.findAccountByKeywordAndActivated(page.getKeyword(), isActivated, pageRequest);
     }
 
-    /**
-     * @param keyword
-     * @param pageNumber
-     * @param pageSize
-     * @return page Account with keyword
-     * http://localhost:8080/api/v1/accounts/find-by-keyword?keyword=123456789&page=1&size=5
-     */
     @GetMapping("/find-by-keyword")
-    public RestResponse<ResponsePageAccount> findAccountByKeyword(@RequestParam(required = false) String keyword,
-                                                                  @RequestParam int pageNumber,
-                                                                  @RequestParam int pageSize) {
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-        return accountService.findAccountByKeyword(keyword, pageRequest);
+    public RestResponse<ResponsePageAccount> findAccountByKeyword(@Valid PagingRequest page) {
+        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
+        return accountService.findAccountByKeyword(page.getKeyword(), pageRequest);
     }
 
     @PutMapping
@@ -69,8 +57,8 @@ public class AccountAdminController {
     }
 
     @PostMapping("/bank-register")
-    public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
-                                                        Authentication authentication) {
+    public ResponseEntity<RestResponse<?>> bankAdminRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+                                                             Authentication authentication) {
         return ResponseEntity.ok(accountService.bankRegister(registerBankAccountRq, authentication));
     }
 }

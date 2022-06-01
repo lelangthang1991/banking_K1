@@ -15,4 +15,5 @@ public class AccountString {
     public final static String ACCOUNT_PIN_CODE_MATCH = "Account pin code match";
     public final static String ACCOUNT_PIN_CODE_DOES_NOT_MATCH = "Account pin code does not match";
     public static final String ACCOUNT_REGISTRATION_SUCCESSFUL = "Account registration successful";
+    public static final String ACCOUNT_CHANGE_PIN_CODE_SUCCESSFUL = "Account change pin code successful";
 }

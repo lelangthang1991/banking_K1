@@ -155,6 +155,9 @@ public class TransactionImpl implements TransactionService {
         Account accountBeneficial = accountRepository.findById(transferMoneyDTO.
                         getBeneficiaryAccountNumber()).
                 orElseThrow(() -> new NotFoundException(ACCOUNT_NUMBER_NOT_FOUND));
+        if(accountTransfer.getAccountNumber().equals(accountBeneficial.getAccountNumber())){
+            return new RestResponse<>(BAD_REQUEST, "Cannot transfer money to the same card");
+        }
         //check accountTransfer isactivate
         if (accountBeneficial.getIsActivated().equals(false)) {
             return new RestResponse<>(BAD_REQUEST, BENEFICILAL_CARD_NOT_ACTIVATED);
