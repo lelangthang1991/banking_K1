@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.util.Date;
 import java.util.List;
@@ -30,6 +31,7 @@ import static com.bstar.banking.common.StatusCodeString.NOT_FOUND;
 import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.*;
 
+@Transactional
 @Service
 public class AccountServiceImpl implements AccountService {
 
@@ -100,7 +102,7 @@ public class AccountServiceImpl implements AccountService {
                 .parallelStream()
                 .map(account -> modelMapper.map(account, AccountDTO.class))
                 .collect(Collectors.toList());
-        return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS,  new ResponsePageAccount(accountPage.getNumber(),
+        return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
                 categoryDTOS.size(),
                 accountPage.getTotalPages(),
                 accountPage.getTotalElements(),

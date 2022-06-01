@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import javax.transaction.Transactional;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,6 +98,7 @@ public class MailerServiceImpl implements MailerService {
         }
     }
 
+    @Transactional
     @Override
     public RestResponse<?> sendVerifyCode(String email) {
         try {

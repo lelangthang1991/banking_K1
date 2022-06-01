@@ -15,8 +15,8 @@ import java.util.Date;
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    private Integer deviceType;
+    private Integer sessionId;
+    private String deviceType;
     private String ipAddress;
     private String refreshToken;
     private Date expired;
@@ -24,5 +24,5 @@ public class Session {
 
     @ManyToOne
     @JoinColumn(name = "user_email")
-    Session session;
+    User user;
 }

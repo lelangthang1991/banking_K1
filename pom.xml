@@ -15,6 +15,7 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>1.8</java.version>
+		<uap-java.version>1.5.2</uap-java.version>
 		<aop.version>2.6.7</aop.version>
 		<mail.vesion>2.5.6</mail.vesion>
 		<modelmapper.version>2.3.0</modelmapper.version>
@@ -24,6 +25,11 @@
 		<junit-jupiter-api.version>5.8.2</junit-jupiter-api.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>com.github.ua-parser</groupId>
+			<artifactId>uap-java</artifactId>
+			<version>${uap-java.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.modelmapper</groupId>
 			<artifactId>modelmapper</artifactId>

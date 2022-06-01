@@ -2,6 +2,7 @@ package com.bstar.banking.service.impl;
 
 
 import com.bstar.banking.common.RandomVerifycode;
+import com.bstar.banking.entity.Session;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.BusinessException;
 import com.bstar.banking.exception.CompareException;
@@ -10,61 +11,68 @@ import com.bstar.banking.jwt.JwtUtil;
 import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.LoginResponse;
 import com.bstar.banking.model.response.RestResponse;
+import com.bstar.banking.repository.SessionRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.security.UserDetailsServiceImpl;
 import com.bstar.banking.service.AbstractCommonService;
 import com.bstar.banking.service.MailerService;
 import com.bstar.banking.service.UserService;
+import com.bstar.banking.utils.DeviceType;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 import java.util.Date;
 
 import static com.bstar.banking.common.JwtString.GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS;
+import static com.bstar.banking.common.JwtString.REFRESH_TOKEN_NOT_FOUND;
 import static com.bstar.banking.common.StatusCodeString.*;
 import static com.bstar.banking.common.UserString.*;
+import static java.util.Objects.nonNull;
 
 
+@Transactional
 @Service
 public class UserServiceImpl extends AbstractCommonService implements UserService {
     private final UserRepository userRepository;
+    private final SessionRepository sessionRepository;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserDetailsServiceImpl userDetailsService;
-    private final AuthenticationManager authenticationManager;
-
     private final ModelMapper modelMapper;
     private final RandomVerifycode verifyCode = new RandomVerifycode();
-
+    private final DeviceType deviceType;
+    private final HttpServletRequest request;
     @Autowired
     MailerService mailerService;
 
-    public UserServiceImpl(UserRepository userRepository,
-                           JwtUtil jwtUtil,
-                           UserDetailsServiceImpl userDetailsService,
-                           JavaMailSender sender,
-                           AuthenticationManager authenticationManager, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager1, ModelMapper modelMapper) {
+    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, JavaMailSender sender, AuthenticationManager authenticationManager, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder, ModelMapper modelMapper, DeviceType deviceType, HttpServletRequest request) {
         super(sender, authenticationManager);
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.sessionRepository = sessionRepository;
         this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager1;
         this.modelMapper = modelMapper;
+        this.deviceType = deviceType;
+        this.request = request;
     }
 
     @Override
     public RestResponse<LoginResponse> generateTokenAndRefreshToken(LoginDTO loginRequest) throws Exception {
         String password = loginRequest.getPassword();
         String email = loginRequest.getEmail();
-        authenticate(email, password);
+        authenticate(email, password); // Call LDAP/Validate manual
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         String token = jwtUtil.generateToken(userDetails);
         Date tokenExpire = jwtUtil.getExpirationDateFromToken(token);
@@ -72,17 +80,31 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
         Date refreshTokenExpire = jwtUtil.getExpirationDateFromToken(refreshToken);
         long refreshTokenExpireMillis = refreshTokenExpire.getTime();
-        LoginResponse data = new LoginResponse(token,
-                tokenExpireMillis,
-                refreshToken,
-                refreshTokenExpireMillis);
+        Session session = new Session();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        String clientIp;
+        String device_type = request.getHeader("user-agent");
+        String clientXForwardedForIp = request.getHeader("x-forwarded-for");
+        if (nonNull(clientXForwardedForIp)) {
+            clientIp = deviceType.parseXForwardedHeader(clientXForwardedForIp);
+        } else {
+            clientIp = request.getRemoteAddr();
+        }
+        session.setRefreshToken(refreshToken);
+        session.setExpired(refreshTokenExpire);
+        session.setCreateDate(new Date());
+        session.setDeviceType(device_type);
+        session.setIpAddress(clientIp);
+        session.setUser(user);
+        sessionRepository.save(session);
+        LoginResponse data = new LoginResponse(token, tokenExpireMillis, refreshToken, refreshTokenExpireMillis);
         return new RestResponse<>(OK, GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS, data);
     }
 
+
     @Override
     public RestResponse<?> forgotPassWord(ForgotPasswordDTO forgotPasswordDTO) {
-        User user = userRepository.findById(forgotPasswordDTO.getEmail())
-                .orElseThrow(() -> new NotFoundException("404", GET_USER_EMAIL_NOT_FOUND));
+        User user = userRepository.findById(forgotPasswordDTO.getEmail()).orElseThrow(() -> new NotFoundException("404", GET_USER_EMAIL_NOT_FOUND));
         if (user.getVerifyCode().equals(forgotPasswordDTO.getVerifyCode())) {
             user.setVerifyCode("");
             user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getNewPassword()));
@@ -125,9 +147,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
                 user.setVerifyCode(verifyCode);
                 userRepository.save(user);
                 mailerService.sendWelcome(user, verifyCode);
-                return new RestResponse<>(OK,
-                        GET_USER_INFO_SUCCESS,
-                        modelMapper.map(user, UserDTO.class));
+                return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
             } catch (Exception e) {
                 return new RestResponse<>(BAD_REQUEST, REGISTRATION_FAILED);
             }
@@ -148,8 +168,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
 
     @Override
     public RestResponse<?> updateUser(UserUpdateRequest updateRequest, Authentication authentication) {
-        User user = userRepository.getUserByEmail(authentication.getName())
-                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+        User user = userRepository.getUserByEmail(authentication.getName()).orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
         user.setEmail(user.getEmail());
         user.setFirstName(updateRequest.getFirstName());
         user.setLastName(user.getLastName());
@@ -160,29 +179,71 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         user.setUpdate_date(new Date());
         user.setUpdate_person(user.getEmail());
         userRepository.save(user);
-        return new RestResponse<>(OK,
-                GET_USER_INFO_SUCCESS,
-                modelMapper.map(user, UserDTO.class));
+        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
     }
 
     @Override
     public RestResponse<?> infoUser(Authentication authentication) {
-        User user = userRepository.getUserByEmail(authentication.getName())
-                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
-        return new RestResponse<>(OK,
-                GET_USER_INFO_SUCCESS,
-                modelMapper.map(user, UserDTO.class));
+        User user = userRepository.getUserByEmail(authentication.getName()).orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
     }
+
     @Override
     public RestResponse<?> changePasswordByOldPassword(Authentication authentication, ChangePasswordDTO changePasswordDTO) throws Exception {
-        if(!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmNewPassword())){
+        if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmNewPassword())) {
             throw new CompareException(CONFIRM_PASSWORD_DOES_NOT_MATCH);
         }
         User user = userRepository.findById(authentication.getName()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
-        if(user.getPassword().equals(changePasswordDTO.getPassword())){
+        if (user.getPassword().equals(changePasswordDTO.getPassword())) {
             throw new NotFoundException(PASSWORD_DOES_NOT_MATCH);
         }
         user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
         return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
+    }
+
+    @Override
+    public RestResponse<LoginResponse> refreshToken() {
+        final String requestTokenHeader = request.getHeader("Authorization");
+        String email = "";
+        String jwtToken = "";
+        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+            jwtToken = requestTokenHeader.substring(7);
+            email = jwtUtil.getEmailFromToken(jwtToken);
+        }
+        Session session = sessionRepository.findSessionByRefreshToken(jwtToken)
+                .orElseThrow(() -> new NotFoundException(REFRESH_TOKEN_NOT_FOUND));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        String token = jwtUtil.generateToken(userDetails);
+        Date tokenExpire = jwtUtil.getExpirationDateFromToken(token);
+        long tokenExpireMillis = tokenExpire.getTime();
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+        Date refreshTokenExpire = jwtUtil.getExpirationDateFromToken(refreshToken);
+        long refreshTokenExpireMillis = refreshTokenExpire.getTime();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        String clientIp = "";
+        String device_type = request.getHeader("user-agent");
+        String clientXForwardedForIp = request.getHeader("x-forwarded-for");
+        if (nonNull(clientXForwardedForIp)) {
+            clientIp = deviceType.parseXForwardedHeader(clientXForwardedForIp);
+        } else {
+            clientIp = request.getRemoteAddr();
+        }
+        session.setRefreshToken(refreshToken);
+        session.setExpired(refreshTokenExpire);
+        session.setCreateDate(new Date());
+        session.setDeviceType(device_type);
+        session.setIpAddress(clientIp);
+        session.setUser(user);
+        sessionRepository.save(session);
+        LoginResponse data = new LoginResponse(token, tokenExpireMillis, refreshToken, refreshTokenExpireMillis);
+        return new RestResponse<>(OK, GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS, data);
+    }
+
+    @Override
+    public RestResponse<?> logout() {
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                new UsernamePasswordAuthenticationToken(null, null, null);
+        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        return new RestResponse<>(OK, USER_LOGOUT_SUCCESS);
     }
 }

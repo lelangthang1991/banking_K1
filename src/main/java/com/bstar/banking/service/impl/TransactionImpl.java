@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.Optional;
 
@@ -26,6 +27,7 @@ import static com.bstar.banking.common.TransactionString.*;
 import static com.bstar.banking.common.UserString.GET_USER_EMAIL_NOT_FOUND;
 import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
 
+@Transactional
 @Service
 public class TransactionImpl implements TransactionService {
     @Autowired
@@ -155,7 +157,7 @@ public class TransactionImpl implements TransactionService {
         Account accountBeneficial = accountRepository.findById(transferMoneyDTO.
                         getBeneficiaryAccountNumber()).
                 orElseThrow(() -> new NotFoundException(ACCOUNT_NUMBER_NOT_FOUND));
-        if(accountTransfer.getAccountNumber().equals(accountBeneficial.getAccountNumber())){
+        if (accountTransfer.getAccountNumber().equals(accountBeneficial.getAccountNumber())) {
             return new RestResponse<>(BAD_REQUEST, "Cannot transfer money to the same card");
         }
         //check accountTransfer isactivate

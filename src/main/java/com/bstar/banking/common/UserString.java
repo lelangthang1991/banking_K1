@@ -16,6 +16,7 @@ public class UserString {
 
     public static final String SUCCESSFUL_ACCOUNT_ACTIVATION = "Successful account activation";
     public static final String ACCOUNT_ACTIVATION_FAILED = "Account activation failed";
+    public static final String USER_LOGOUT_SUCCESS = "User logout success";
 
     public static final String REGISTRATION_FAILED = "Registration failed, please try again!";
 
