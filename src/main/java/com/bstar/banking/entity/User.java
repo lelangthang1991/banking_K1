@@ -36,7 +36,7 @@ public class User {
     private Date create_date;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "session")
+    @OneToMany(mappedBy = "user")
     List<Session> sessions;
 
     @JsonIgnore

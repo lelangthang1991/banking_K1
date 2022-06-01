@@ -8,14 +8,15 @@ import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.AccountService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+@PreAuthorize("hasAuthority('0')")
 @RequestMapping("/api/v1/admin/accounts")
 @RestController
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class AccountAdminController {
     private final AccountService accountService;
 
