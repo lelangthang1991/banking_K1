@@ -5,6 +5,7 @@ import com.bstar.banking.entity.Transaction;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.DepositMoneyDTO;
+import com.bstar.banking.model.request.ListTransactionDTO;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.AccountRepository;
@@ -17,11 +18,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static com.bstar.banking.common.AccountString.ACCOUNT_NUMBER_NOT_FOUND;
-import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
-import static com.bstar.banking.common.StatusCodeString.OK;
+import static com.bstar.banking.common.StatusCodeString.*;
 import static com.bstar.banking.common.TransactionString.*;
 import static com.bstar.banking.common.UserString.GET_USER_EMAIL_NOT_FOUND;
 import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
@@ -77,6 +78,8 @@ public class TransactionImpl implements TransactionService {
 
             TransactionDTO transactionDTO;
             transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
+            transactionDTO.setOwnerNumber(getAccount.getAccountNumber());
+            transactionDTO.setTransactionId(transaction.getTransactionId());
             transactionDTO.setBalance(getAccount.getBalance());
             return new RestResponse<>(OK, DEPOSIT_SUCCESSFUL,
                     transactionDTO);
@@ -130,6 +133,8 @@ public class TransactionImpl implements TransactionService {
             transactionRepository.save(transaction);
             TransactionDTO transactionDTO;
             transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
+            transactionDTO.setOwnerNumber(getAccount.getAccountNumber());
+            transactionDTO.setTransactionId(transaction.getTransactionId());
             transactionDTO.setBalance(getAccount.getBalance());
             return new RestResponse<>(OK, DEPOSIT_SUCCESSFUL,
                     transactionDTO);
@@ -148,14 +153,14 @@ public class TransactionImpl implements TransactionService {
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
 
         Optional<Account> account = user.getAccounts().stream()
-                .filter(us -> us.getAccountNumber().equals(transferMoneyDTO.getTransferNumber()))
+                .filter(us -> us.getAccountNumber().equals(transferMoneyDTO.getOwnerNumber()))
                 .findFirst();
         Account accountTransfer = account.get();
 
         Account accountBeneficial = accountRepository.findById(transferMoneyDTO.
                         getBeneficiaryAccountNumber()).
                 orElseThrow(() -> new NotFoundException(ACCOUNT_NUMBER_NOT_FOUND));
-        if(accountTransfer.getAccountNumber().equals(accountBeneficial.getAccountNumber())){
+        if (accountTransfer.getAccountNumber().equals(accountBeneficial.getAccountNumber())) {
             return new RestResponse<>(BAD_REQUEST, "Cannot transfer money to the same card");
         }
         //check accountTransfer isactivate
@@ -194,12 +199,64 @@ public class TransactionImpl implements TransactionService {
 
             TransactionDTO transactionDTO;
             transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
+            transactionDTO.setOwnerNumber(accountTransfer.getAccountNumber());
             transactionDTO.setBalance(accountTransfer.getBalance());
+            transactionDTO.setTransactionId(transaction.getTransactionId());
             return new RestResponse<>(OK, TRANSFER_MONEY_SUCCESSFUL,
                     transactionDTO);
         } catch (Exception e) {
             return new RestResponse<>(BAD_REQUEST, TRANSFER_MONEY_FAIL);
         }
+
+    }
+
+
+    @Override
+    public RestResponse<?> listTransaction(ListTransactionDTO listTransactionDTO, Authentication authentication) {
+
+        String email = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
+
+        Optional<Account> account = user.getAccounts().stream()
+                .filter(us -> us.getAccountNumber().equals(listTransactionDTO.getAccountNumber()))
+                .findFirst();
+
+        try {
+            List<Transaction> list = transactionRepository.listTransaction(listTransactionDTO.getTransactionType(), listTransactionDTO.getAccountNumber(), email);
+            if (list.isEmpty()) {
+                return new RestResponse<>(NOT_FOUND, TRANSACTION_LIST_NOT_FOUND);
+            }
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, list);
+
+        } catch (Exception e) {
+            return new RestResponse<>(BAD_REQUEST, GET_LIST_FAIL);
+        }
+
+
+    }
+
+
+    @Override
+    public RestResponse<?> listAllTransaction(ListTransactionDTO listTransactionDTO, Authentication authentication) {
+
+        String email = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
+
+        Optional<Account> account = user.getAccounts().stream()
+                .filter(us -> us.getAccountNumber().equals(listTransactionDTO.getAccountNumber()))
+                .findFirst();
+
+        try {
+            List<Transaction> list = transactionRepository.listAllTransaction(listTransactionDTO.getAccountNumber(), email);
+            if (list.isEmpty()) {
+                return new RestResponse<>(NOT_FOUND, TRANSACTION_LIST_NOT_FOUND);
+            }
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, list);
+
+        } catch (Exception e) {
+            return new RestResponse<>(BAD_REQUEST, GET_LIST_FAIL);
+        }
+
 
     }
 

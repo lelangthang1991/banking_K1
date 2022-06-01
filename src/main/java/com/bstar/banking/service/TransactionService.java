@@ -1,6 +1,7 @@
 package com.bstar.banking.service;
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
+import com.bstar.banking.model.request.ListTransactionDTO;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.RestResponse;
 import org.springframework.security.core.Authentication;
@@ -12,5 +13,9 @@ public interface TransactionService {
     RestResponse<?> withdrawMoney(DepositMoneyDTO withdrawMoneyDTO, Authentication authentication);
 
     RestResponse<?> transferMoney(TransactionDTO transferMoneyDTO, Authentication authentication);
+
+    RestResponse<?> listTransaction(ListTransactionDTO listTransactionDTO, Authentication authentication);
+
+    RestResponse<?> listAllTransaction(ListTransactionDTO listTransactionDTO, Authentication authentication);
 
 }

@@ -2,6 +2,7 @@ package com.bstar.banking.controller;
 
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
+import com.bstar.banking.model.request.ListTransactionDTO;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.TransactionService;
@@ -45,6 +46,27 @@ public class TransactionController {
     public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
 
         RestResponse<?> response = transactionService.transferMoney(transferMoneyDTO, authentication);
+        if (response.getStatusCode().equals(OK)) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().body(response);
+    }
+
+
+    @GetMapping("/list-transaction")
+    public ResponseEntity<?> listTransaction(@Valid @RequestBody ListTransactionDTO listTransactionDTO, Authentication authentication) {
+
+        RestResponse<?> response = transactionService.listTransaction(listTransactionDTO, authentication);
+        if (response.getStatusCode().equals(OK)) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @GetMapping("/list-all-transaction")
+    public ResponseEntity<?> listAllTransaction(@Valid @RequestBody ListTransactionDTO listTransactionDTO, Authentication authentication) {
+
+        RestResponse<?> response = transactionService.listAllTransaction(listTransactionDTO, authentication);
         if (response.getStatusCode().equals(OK)) {
             return ResponseEntity.ok(response);
         }

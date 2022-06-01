@@ -93,7 +93,6 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         }
     }
 
-
     @Override
     public RestResponse<?> signupUser(SignupRequest signupRequest) {
         boolean isMailRegistered = userRepository.findById(signupRequest.getEmail()).isPresent();
@@ -173,13 +172,14 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
                 GET_USER_INFO_SUCCESS,
                 modelMapper.map(user, UserDTO.class));
     }
+
     @Override
     public RestResponse<?> changePasswordByOldPassword(Authentication authentication, ChangePasswordDTO changePasswordDTO) throws Exception {
-        if(!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmNewPassword())){
+        if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmNewPassword())) {
             throw new CompareException(CONFIRM_PASSWORD_DOES_NOT_MATCH);
         }
         User user = userRepository.findById(authentication.getName()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
-        if(user.getPassword().equals(changePasswordDTO.getPassword())){
+        if (user.getPassword().equals(changePasswordDTO.getPassword())) {
             throw new NotFoundException(PASSWORD_DOES_NOT_MATCH);
         }
         user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
