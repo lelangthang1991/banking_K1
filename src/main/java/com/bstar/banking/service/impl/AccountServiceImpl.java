@@ -64,6 +64,7 @@ public class AccountServiceImpl implements AccountService {
         return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
                 categoryDTOS.size(),
                 accountPage.getTotalPages(),
+                categoryDTOS.size(),
                 categoryDTOS));
     }
 
@@ -75,8 +76,9 @@ public class AccountServiceImpl implements AccountService {
                 .map(account -> modelMapper.map(account, AccountDTO.class))
                 .collect(Collectors.toList());
         return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
-                accountPage.getTotalElements(),
+                categoryDTOS.size(),
                 accountPage.getTotalPages(),
+                accountPage.getTotalElements(),
                 categoryDTOS));
     }
 
@@ -98,9 +100,10 @@ public class AccountServiceImpl implements AccountService {
                 .parallelStream()
                 .map(account -> modelMapper.map(account, AccountDTO.class))
                 .collect(Collectors.toList());
-        return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
-                accountPage.getTotalElements(),
+        return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS,  new ResponsePageAccount(accountPage.getNumber(),
+                categoryDTOS.size(),
                 accountPage.getTotalPages(),
+                accountPage.getTotalElements(),
                 categoryDTOS));
     }
 

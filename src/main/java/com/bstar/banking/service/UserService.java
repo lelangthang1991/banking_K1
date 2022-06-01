@@ -1,9 +1,6 @@
 package com.bstar.banking.service;
 
-import com.bstar.banking.model.request.ForgotPasswordDTO;
-import com.bstar.banking.model.request.LoginDTO;
-import com.bstar.banking.model.request.SignupRequest;
-import com.bstar.banking.model.request.UserUpdateRequest;
+import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.LoginResponse;
 import com.bstar.banking.model.response.RestResponse;
 import org.springframework.security.core.Authentication;
@@ -17,4 +14,5 @@ public interface UserService {
     RestResponse<?> activateUser(@PathVariable String email, @PathVariable String verify);
     RestResponse<?> updateUser(UserUpdateRequest updateRequest, Authentication authentication);
     RestResponse<?> infoUser(Authentication authentication);
+    RestResponse<?> changePasswordByOldPassword(Authentication authentication, ChangePasswordDTO changePasswordDTO) throws Exception;
 }

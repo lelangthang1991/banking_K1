@@ -4,6 +4,7 @@ package com.bstar.banking.service.impl;
 import com.bstar.banking.common.RandomVerifycode;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.BusinessException;
+import com.bstar.banking.exception.CompareException;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.jwt.JwtUtil;
 import com.bstar.banking.model.request.*;
@@ -171,5 +172,17 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         return new RestResponse<>(OK,
                 GET_USER_INFO_SUCCESS,
                 modelMapper.map(user, UserDTO.class));
+    }
+    @Override
+    public RestResponse<?> changePasswordByOldPassword(Authentication authentication, ChangePasswordDTO changePasswordDTO) throws Exception {
+        if(!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmNewPassword())){
+            throw new CompareException(CONFIRM_PASSWORD_DOES_NOT_MATCH);
+        }
+        User user = userRepository.findById(authentication.getName()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        if(user.getPassword().equals(changePasswordDTO.getPassword())){
+            throw new NotFoundException(PASSWORD_DOES_NOT_MATCH);
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
     }
 }

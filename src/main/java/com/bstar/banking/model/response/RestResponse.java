@@ -17,21 +17,21 @@ import static com.bstar.banking.utils.Utils.convertDateToString;
 @AllArgsConstructor
 public class RestResponse<T> {
     private UUID UID;
-    private String date;
+    private String timestamp;
     private String statusCode;
     private String statusDescription;
     private T data;
 
     public RestResponse(String statusCode, String statusDescription) {
         this.UID = UUID.randomUUID();
-        this.date = convertDateToString(Date.from(Instant.now()), YYMMDDMMSSSSS);
+        this.timestamp = convertDateToString(Date.from(Instant.now()), YYMMDDMMSSSSS);
         this.statusCode = statusCode;
         this.statusDescription = statusDescription;
     }
 
     public RestResponse(String statusCode, String statusDescription, T data) {
         this.UID = UUID.randomUUID();
-        this.date = convertDateToString(Date.from(Instant.now()), YYMMDDMMSSSSS);
+        this.timestamp = convertDateToString(Date.from(Instant.now()), YYMMDDMMSSSSS);
         this.statusCode = statusCode;
         this.statusDescription = statusDescription;
         this.data = data;
