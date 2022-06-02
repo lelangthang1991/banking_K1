@@ -7,7 +7,6 @@ import com.bstar.banking.model.request.RegisterBankAccountRq;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.AccountService;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +34,7 @@ public class AccountController {
 
     @GetMapping("/get-page")
     public ResponseEntity<RestResponse<ResponsePageAccount>> getPageAccount(@Valid PagingRequest page) {
-        return ResponseEntity.ok(accountService.findPageAccount(PageRequest.of(page.getPageNumber(), page.getPageSize())));
+        return ResponseEntity.ok(accountService.findPageAccount(page));
     }
 
     @GetMapping("/{accountNumber}")

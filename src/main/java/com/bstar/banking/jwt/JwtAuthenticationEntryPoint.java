@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
+import static com.bstar.banking.common.StatusCodeString.UNAUTHORIZED;
 import static com.bstar.banking.utils.Utils.FULL_DATE_FORMAT;
 import static com.bstar.banking.utils.Utils.convertDateToString;
 
@@ -25,10 +25,10 @@ import static com.bstar.banking.utils.Utils.convertDateToString;
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
         Map<String, Object> data = new HashMap<>();
-        data.put("statusCode", BAD_REQUEST);
+        data.put("statusCode", UNAUTHORIZED);
         data.put("statusDescription", "Invalid email or password");
         data.put("timestamp", convertDateToString(Date.from(Instant.now()), FULL_DATE_FORMAT));
         data.put("uuid", UUID.randomUUID());

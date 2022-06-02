@@ -4,19 +4,21 @@ import com.bstar.banking.common.RandomBankNumber;
 import com.bstar.banking.entity.Account;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.NotFoundException;
-import com.bstar.banking.model.request.AccountDTO;
-import com.bstar.banking.model.request.ChangePinCodeDTO;
-import com.bstar.banking.model.request.PinCodeDTO;
-import com.bstar.banking.model.request.RegisterBankAccountRq;
+import com.bstar.banking.exception.PinCodeException;
+import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.AccountRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.AccountService;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -57,31 +59,68 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public RestResponse<ResponsePageAccount> findAccountByKeyword(String keyword, Pageable pageable) {
-        Page<Account> accountPage = accountRepository.findAccountByKeyword(keyword, pageable);
-        List<AccountDTO> categoryDTOS = accountPage.getContent()
-                .parallelStream()
-                .map(account -> modelMapper.map(account, AccountDTO.class))
-                .collect(Collectors.toList());
-        return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
-                categoryDTOS.size(),
-                accountPage.getTotalPages(),
-                categoryDTOS.size(),
-                categoryDTOS));
+    public RestResponse<ResponsePageAccount> findAccountByKeyword(PagingRequest request) {
+        if (StringUtils.isBlank(request.getSortField()) || StringUtils.isBlank(request.getSortDir())) {
+            Pageable pageable = PageRequest.of(request.getPageNumber(), request.getPageSize());
+            Page<Account> accountPage = accountRepository.findAccountByKeyword(request.getKeyword(), pageable);
+            List<AccountDTO> categoryDTOS = accountPage.getContent()
+                    .parallelStream()
+                    .map(account -> modelMapper.map(account, AccountDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
+                    accountPage.getSize(),
+                    accountPage.getTotalPages(),
+                    categoryDTOS.size(),
+                    categoryDTOS));
+        } else {
+            Sort sort = Sort.by(request.getSortField());
+            sort = request.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
+            Pageable pageable = PageRequest.of(request.getPageNumber(), request.getPageSize(), sort);
+            Page<Account> accountPage = accountRepository.findAccountByKeyword(request.getKeyword(), pageable);
+            List<AccountDTO> categoryDTOS = accountPage.getContent()
+                    .parallelStream()
+                    .map(account -> modelMapper.map(account, AccountDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
+                    accountPage.getSize(),
+                    accountPage.getTotalPages(),
+                    categoryDTOS.size(),
+                    categoryDTOS));
+        }
     }
 
     @Override
-    public RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(String keyword, boolean isActivated, Pageable pageable) {
-        Page<Account> accountPage = accountRepository.findAccountByKeywordAndActivated(keyword, isActivated, pageable);
-        List<AccountDTO> categoryDTOS = accountPage.getContent()
-                .parallelStream()
-                .map(account -> modelMapper.map(account, AccountDTO.class))
-                .collect(Collectors.toList());
-        return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
-                categoryDTOS.size(),
-                accountPage.getTotalPages(),
-                accountPage.getTotalElements(),
-                categoryDTOS));
+    public RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(PagingRequest request) {
+        if (request.getIsActivated() == null) {
+            throw new NotFoundException(ACCOUNT_ACTIVATE_PROPERTIES_NOT_FOUND);
+        }
+        if (StringUtils.isBlank(request.getSortField()) || StringUtils.isBlank(request.getSortDir())) {
+            Pageable pageable = PageRequest.of(request.getPageNumber(), request.getPageSize());
+            Page<Account> accountPage = accountRepository.findAccountByKeywordAndActivated(request.getKeyword(), request.getIsActivated(), pageable);
+            List<AccountDTO> categoryDTOS = accountPage.getContent()
+                    .parallelStream()
+                    .map(account -> modelMapper.map(account, AccountDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
+                    accountPage.getSize(),
+                    accountPage.getTotalPages(),
+                    accountPage.getTotalElements(),
+                    categoryDTOS));
+        } else {
+            Sort sort = Sort.by(request.getSortField());
+            sort = request.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
+            Pageable pageable = PageRequest.of(request.getPageNumber(), request.getPageSize(), sort);
+            Page<Account> accountPage = accountRepository.findAccountByKeywordAndActivated(request.getKeyword(), request.getIsActivated(), pageable);
+            List<AccountDTO> categoryDTOS = accountPage.getContent()
+                    .parallelStream()
+                    .map(account -> modelMapper.map(account, AccountDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
+                    accountPage.getSize(),
+                    accountPage.getTotalPages(),
+                    accountPage.getTotalElements(),
+                    categoryDTOS));
+        }
     }
 
     @Override
@@ -96,17 +135,35 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable) {
-        Page<Account> accountPage = accountRepository.findAll(pageable);
-        List<AccountDTO> categoryDTOS = accountPage.getContent()
-                .parallelStream()
-                .map(account -> modelMapper.map(account, AccountDTO.class))
-                .collect(Collectors.toList());
-        return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
-                categoryDTOS.size(),
-                accountPage.getTotalPages(),
-                accountPage.getTotalElements(),
-                categoryDTOS));
+    public RestResponse<ResponsePageAccount> findPageAccount(PagingRequest request) {
+        if (StringUtils.isBlank(request.getSortField()) || StringUtils.isBlank(request.getSortDir())) {
+            Pageable pageable = PageRequest.of(request.getPageNumber(), request.getPageSize());
+            Page<Account> accountPage = accountRepository.findAll(pageable);
+            List<AccountDTO> categoryDTOS = accountPage.getContent()
+                    .parallelStream()
+                    .map(account -> modelMapper.map(account, AccountDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
+                    accountPage.getSize(),
+                    accountPage.getTotalPages(),
+                    accountPage.getTotalElements(),
+                    categoryDTOS));
+        } else {
+            Sort sort = Sort.by(request.getSortField());
+            sort = request.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
+            Pageable pageable = PageRequest.of(request.getPageNumber(), request.getPageSize(), sort);
+            Page<Account> accountPage = accountRepository.findAll(pageable);
+            List<AccountDTO> categoryDTOS = accountPage.getContent()
+                    .parallelStream()
+                    .map(account -> modelMapper.map(account, AccountDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(accountPage.getNumber(),
+                    accountPage.getSize(),
+                    accountPage.getTotalPages(),
+                    accountPage.getTotalElements(),
+                    categoryDTOS));
+        }
+
     }
 
     @Override
@@ -143,19 +200,45 @@ public class AccountServiceImpl implements AccountService {
         return new RestResponse<>(OK, ACCOUNT_DISABLED_SUCCESS);
     }
 
-    public RestResponse<?> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+    public RestResponse<?> bankRegister(@Valid @RequestBody RegisterBankAccountRq registerDTO,
                                         Authentication authentication) {
-        if (!registerBankAccountRq.getPinCode().equals(registerBankAccountRq.getConfirmPinCode())) {
+        if (!registerDTO.getPinCode().equals(registerDTO.getConfirmPinCode())) {
             return new RestResponse<>(NOT_FOUND, PINCODE_DOES_NOT_MATCH);
         }
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         Account account = new Account();
         RandomBankNumber randomBankNumber = new RandomBankNumber();
-        account.setAccountType(registerBankAccountRq.getAccountType());
+        account.setAccountType(registerDTO.getAccountType());
         account.setAccountNumber(randomBankNumber.randomBankNumber());
         account.setBalance((double) 0);
-        account.setPinCode(registerBankAccountRq.getPinCode());
+        account.setPinCode(registerDTO.getPinCode());
+        account.setIsActivated(true);
+        account.setCreateDate(new Date());
+        account.setCreatePerson(email);
+        account.setUpdateDate(new Date());
+        account.setUpdatePerson(email);
+        account.setUser(user);
+        accountRepository.save(account);
+        return new RestResponse<>(OK,
+                ACCOUNT_REGISTRATION_SUCCESSFUL,
+                modelMapper.map(account, AccountDTO.class));
+
+    }
+
+    @Override
+    public RestResponse<?> adminBankRegister(AdminRegisterDTO registerDTO, Authentication authentication) {
+        if (!registerDTO.getPinCode().equals(registerDTO.getConfirmPinCode())) {
+            return new RestResponse<>(NOT_FOUND, PINCODE_DOES_NOT_MATCH);
+        }
+        String email = authentication.getName();
+        User user = userRepository.findById(registerDTO.getEmail()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        Account account = new Account();
+        RandomBankNumber randomBankNumber = new RandomBankNumber();
+        account.setAccountType(registerDTO.getAccountType());
+        account.setAccountNumber(randomBankNumber.randomBankNumber());
+        account.setBalance((double) 0);
+        account.setPinCode(registerDTO.getPinCode());
         account.setIsActivated(true);
         account.setCreateDate(new Date());
         account.setCreatePerson(email);
@@ -176,11 +259,60 @@ public class AccountServiceImpl implements AccountService {
         Account account = user.getAccounts().stream()
                 .filter(us -> us.getAccountNumber().equals(changePinCodeDTO.getAccountNumber()))
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException(ACCOUNT_PIN_CODE_DOES_NOT_MATCH));
+                .orElseThrow(() -> new NotFoundException(ACCOUNT_NUMBER_NOT_FOUND));
+        if (account.getPinCode().equals(changePinCodeDTO.getNewPinCode())) {
+            throw new PinCodeException(NEW_PIN_CODE_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
+        }
         account.setPinCode(changePinCodeDTO.getNewPinCode());
         accountRepository.save(account);
         return new RestResponse<>(OK,
                 ACCOUNT_CHANGE_PIN_CODE_SUCCESSFUL,
                 modelMapper.map(account, AccountDTO.class));
     }
+
+    @Override
+    public RestResponse<?> findAllAccountFiltered(FilterAccountDTO filterAccountDTO) {
+        if (StringUtils.isBlank(filterAccountDTO.getSortField()) || StringUtils.isBlank(filterAccountDTO.getSortDir())) {
+            Pageable pageable = PageRequest.of(filterAccountDTO.getPageNumber(), filterAccountDTO.getPageSize());
+            Page<Account> accounts = accountRepository.findAllAccountFiltered(filterAccountDTO, pageable);
+            List<AccountDTO> accountDTOS = accounts.stream()
+                    .map(acc -> modelMapper.map(acc, AccountDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(
+                    accounts.getNumber(),
+                    accounts.getSize(),
+                    accounts.getTotalPages(),
+                    accounts.getTotalElements(),
+                    accountDTOS));
+        }
+        else{
+            Sort sort = Sort.by(filterAccountDTO.getSortField());
+            sort = filterAccountDTO.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
+            Pageable pageable = PageRequest.of(filterAccountDTO.getPageNumber(), filterAccountDTO.getPageSize(), sort);
+            Page<Account> accounts = accountRepository.findAllAccountFiltered(filterAccountDTO, pageable);
+            List<AccountDTO> accountDTOS = accounts.stream()
+                    .map(acc -> modelMapper.map(acc, AccountDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_ACCOUNT_SUCCESS, new ResponsePageAccount(
+                    accounts.getNumber(),
+                    accounts.getSize(),
+                    accounts.getTotalPages(),
+                    accounts.getTotalElements(),
+                    accountDTOS));
+        }
+
+    }
+
+    @Override
+    public RestResponse<?> activatedAccount(ActivateAccountDTO accountDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String adminEmail = authentication.getName();
+        Account account = accountRepository.findById(accountDTO.getAccountNumber()).orElseThrow(() -> new NotFoundException(ACCOUNT_NUMBER_NOT_FOUND));
+        account.setIsActivated(true);
+        account.setUpdateDate(new Date());
+        account.setUpdatePerson(adminEmail);
+        accountRepository.save(account);
+        return new RestResponse<>(OK, ACCOUNT_ACTIVATE_SUCCESS);
+    }
+
 }
