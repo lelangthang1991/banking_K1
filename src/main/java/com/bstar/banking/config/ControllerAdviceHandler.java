@@ -2,6 +2,7 @@ package com.bstar.banking.config;
 
 import com.bstar.banking.exception.CompareException;
 import com.bstar.banking.exception.NotFoundException;
+import com.bstar.banking.exception.PinCodeException;
 import com.bstar.banking.model.response.ExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -24,11 +28,13 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @ControllerAdvice
 public class ControllerAdviceHandler extends ResponseEntityExceptionHandler {
     private final Logger logger = LoggerFactory.getLogger(ControllerAdviceHandler.class);
+
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<?> handlerNotFoundException(NotFoundException ex){
+    public ResponseEntity<?> handlerNotFoundException(NotFoundException ex) {
         logger.error(ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ExceptionResponse("404", ex.getMessage()));
     }
+
     @ExceptionHandler(NumberFormatException.class)
     public ResponseEntity<Object> handleNumberFormatException(NumberFormatException ex) {
         logger.error(ex.getMessage());
@@ -38,33 +44,35 @@ public class ControllerAdviceHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
         logger.error(ex.getMessage());
-        return  ResponseEntity.status(BAD_REQUEST).body( new ExceptionResponse("400", ex.getMessage()));
+        return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handlerException(Exception ex) {
         logger.error(ex.getMessage());
-        return  ResponseEntity.status(BAD_REQUEST).body( new ExceptionResponse("400", ex.getMessage()));
+        return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", ex.getMessage()));
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Object> handlerAuthenticationException(AuthenticationException ex) {
-        return  ResponseEntity.status(BAD_REQUEST).body( new ExceptionResponse("400", "UnAuthentication"));
+        return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", "UnAuthentication"));
     }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handlerAccessDeniedException(AccessDeniedException ex) {
         logger.error(ex.getMessage());
-        return  ResponseEntity.status(BAD_REQUEST).body( new ExceptionResponse("400", "Access denied"));
+        return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", "Access denied"));
     }
 
     @ExceptionHandler(CompareException.class)
     public ResponseEntity<Object> handlerCompareException(CompareException ex) {
         logger.error(ex.getMessage());
-        return  ResponseEntity.status(BAD_REQUEST).body( new ExceptionResponse("400", ex.getMessage()));
+        return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", ex.getMessage()));
     }
+
     @Override
     public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                  HttpHeaders headers, HttpStatus status, WebRequest request) {
+                                                               HttpHeaders headers, HttpStatus status, WebRequest request) {
         ex.printStackTrace();
         List<Map<String, String>> details = new ArrayList<>();
         AtomicReference<String> errMessage = new AtomicReference<>("");
@@ -80,8 +88,14 @@ public class ControllerAdviceHandler extends ResponseEntityExceptionHandler {
                     details.add(detail);
                 });
         logger.error(ex.getMessage());
-          return ResponseEntity
+        return ResponseEntity
                 .badRequest()
                 .body(new ExceptionResponse("400", errMessage.toString(), details));
+    }
+
+    @ExceptionHandler(PinCodeException.class)
+    public ResponseEntity<?> handlerPinCodeException(PinCodeException ex) {
+        logger.error(ex.getMessage());
+        return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", ex.getMessage()));
     }
 }
