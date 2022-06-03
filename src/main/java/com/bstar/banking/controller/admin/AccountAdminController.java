@@ -1,12 +1,9 @@
 package com.bstar.banking.controller.admin;
 
-import com.bstar.banking.model.request.AccountDTO;
-import com.bstar.banking.model.request.PagingRequest;
-import com.bstar.banking.model.request.RegisterBankAccountRq;
+import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.AccountService;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -26,7 +23,7 @@ public class AccountAdminController {
 
     @GetMapping("/get-page")
     public RestResponse<ResponsePageAccount> getPageAccount(@Valid PagingRequest page) {
-        return accountService.findPageAccount(PageRequest.of(page.getPageNumber(), page.getPageSize()));
+        return accountService.findPageAccount(page);
     }
 
     @GetMapping("/{accountNumber}")
@@ -35,16 +32,13 @@ public class AccountAdminController {
     }
 
     @GetMapping("/activated/find-by-keyword")
-    public RestResponse<ResponsePageAccount> findAccountByKeywordActivated(@Valid PagingRequest page,
-                                                                           @RequestParam boolean isActivated) {
-        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
-        return accountService.findAccountByKeywordAndActivated(page.getKeyword(), isActivated, pageRequest);
+    public RestResponse<ResponsePageAccount> findAccountByKeywordActivated(@Valid PagingRequest page) {
+        return accountService.findAccountByKeywordAndActivated(page);
     }
 
     @GetMapping("/find-by-keyword")
     public RestResponse<ResponsePageAccount> findAccountByKeyword(@Valid PagingRequest page) {
-        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
-        return accountService.findAccountByKeyword(page.getKeyword(), pageRequest);
+        return accountService.findAccountByKeyword(page);
     }
 
     @PutMapping
@@ -58,8 +52,18 @@ public class AccountAdminController {
     }
 
     @PostMapping("/bank-register")
-    public ResponseEntity<RestResponse<?>> bankAdminRegister(@Valid @RequestBody RegisterBankAccountRq registerBankAccountRq,
+    public ResponseEntity<RestResponse<?>> bankAdminRegister(@Valid @RequestBody AdminRegisterDTO registerDTO,
                                                              Authentication authentication) {
-        return ResponseEntity.ok(accountService.bankRegister(registerBankAccountRq, authentication));
+        return ResponseEntity.ok(accountService.adminBankRegister(registerDTO, authentication));
+    }
+
+    @GetMapping("/get-all-account")
+    public ResponseEntity<RestResponse<?>> findAllAccountFiltered(@Valid FilterAccountDTO accountDTO) {
+        return ResponseEntity.ok(accountService.findAllAccountFiltered(accountDTO));
+    }
+
+    @PostMapping("/activate-account")
+    public ResponseEntity<RestResponse<?>> activatedAccount(@Valid @RequestBody ActivateAccountDTO accountDTO) {
+        return ResponseEntity.ok(accountService.activatedAccount(accountDTO));
     }
 }

@@ -1,24 +1,20 @@
 package com.bstar.banking.service;
 
-import com.bstar.banking.model.request.AccountDTO;
-import com.bstar.banking.model.request.ChangePinCodeDTO;
-import com.bstar.banking.model.request.PinCodeDTO;
-import com.bstar.banking.model.request.RegisterBankAccountRq;
+import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 
 public interface AccountService {
     RestResponse<?> checkPinCode(PinCodeDTO pinCodeDTO, Authentication authentication);
 
-    RestResponse<ResponsePageAccount> findAccountByKeyword(String keyword, Pageable pageable);
+    RestResponse<ResponsePageAccount> findAccountByKeyword(PagingRequest request);
 
-    RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(String keyword, boolean isActivated, Pageable pageable);
+    RestResponse<ResponsePageAccount> findAccountByKeywordAndActivated(PagingRequest request);
 
     RestResponse<?> findAccountByEmail(String email);
 
-    RestResponse<ResponsePageAccount> findPageAccount(Pageable pageable);
+    RestResponse<ResponsePageAccount> findPageAccount(PagingRequest request);
 
     RestResponse<?> findAccountByAccountNumber(String accountNumber);
 
@@ -28,5 +24,11 @@ public interface AccountService {
 
     RestResponse<?> bankRegister(RegisterBankAccountRq bankRequest, Authentication authentication);
 
+    RestResponse<?> adminBankRegister(AdminRegisterDTO registerDTO, Authentication authentication);
+
+
     RestResponse<?> changePinCode(ChangePinCodeDTO changePinCodeDTO, Authentication authentication);
+
+    RestResponse<?> findAllAccountFiltered(FilterAccountDTO filterAccountDTO);
+    RestResponse<?> activatedAccount(ActivateAccountDTO accountDTOs);
 }
