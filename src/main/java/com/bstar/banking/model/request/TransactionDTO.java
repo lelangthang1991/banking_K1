@@ -19,18 +19,15 @@ public class TransactionDTO {
     @Size(min = 13, max = 16)
     private String ownerNumber;
     private Integer transactionId;
-
     @Min(value = 0)
     private Double amount;
     private Double balance;
-
     @NotBlank
     @Size(max = 4)
     private String pinCode;
     @NotBlank
     @Size(max = 200)
     private String body;
-
     private String unitCurrency;
     private Integer status;
     private Integer transactionType;

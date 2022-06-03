@@ -2,11 +2,9 @@ package com.bstar.banking.service;
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
 import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
-import com.bstar.banking.model.request.ListTransactionPagingRequest;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 
 public interface TransactionService {
@@ -17,9 +15,8 @@ public interface TransactionService {
 
     RestResponse<?> transferMoney(TransactionDTO transferMoneyDTO, Authentication authentication);
 
-    RestResponse<ResponsePageAccount> listTransactionByAccountAndType(ListTransactionPagingRequest listTransactionDTO, Authentication authentication, Pageable pageable);
+    RestResponse<ResponsePageAccount> listTransactionByAccountAndType(ListTransactionByDatePagingRequest listTransactionDTO, Authentication authentication);
 
-    RestResponse<ResponsePageAccount> listAllTransactionByAccount(ListTransactionPagingRequest listTransactionPagingRequest, Authentication authentication, Pageable pageable);
+    RestResponse<ResponsePageAccount> listAllTransactionByAccount(ListTransactionByDatePagingRequest listTransactionPagingRequest, Authentication authentication);
 
-    RestResponse<ResponsePageAccount> listTransactionByAccountAndTypeAndDate(ListTransactionByDatePagingRequest lDate, Authentication authentication, Pageable pageable);
 }
