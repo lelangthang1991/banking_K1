@@ -28,7 +28,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.bstar.banking.common.AccountString.ACCOUNT_NUMBER_NOT_FOUND;
-import static com.bstar.banking.common.StatusCodeString.*;
+import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
+import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.TransactionString.*;
 import static com.bstar.banking.common.UserString.GET_USER_EMAIL_NOT_FOUND;
 import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
@@ -232,7 +233,6 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(list -> modelMapper.map(list, TransactionDTO.class))
                     .collect(Collectors.toList());
-
             listDTO.forEach(l -> l.setOwnerNumber(listTransactionPagingRequest.getAccountNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageAccount(listPage.getNumber(),
                     listDTO.size(),
