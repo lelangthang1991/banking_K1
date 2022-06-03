@@ -3,13 +3,11 @@ package com.bstar.banking.controller;
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
 import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
-import com.bstar.banking.model.request.ListTransactionPagingRequest;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.ResponsePageAccount;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.TransactionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -26,54 +24,29 @@ public class TransactionController {
 
     @PostMapping("/deposit-money")
     public ResponseEntity<?> depositMoney(@Valid @RequestBody DepositMoneyDTO depositMoneyDTO, Authentication authentication) {
-
-        RestResponse<?> response = transactionService.depositMoney(depositMoneyDTO, authentication);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.ok(transactionService.depositMoney(depositMoneyDTO, authentication));
     }
 
     @PostMapping("/withdraw-money")
     public ResponseEntity<?> withdrawMoney(@Valid @RequestBody DepositMoneyDTO transferMoneyDTO, Authentication authentication) {
-
-        RestResponse<?> response = transactionService.withdrawMoney(transferMoneyDTO, authentication);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.ok(transactionService.withdrawMoney(transferMoneyDTO, authentication));
     }
 
     @PostMapping("/transfer-money")
     public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
-
-        RestResponse<?> response = transactionService.transferMoney(transferMoneyDTO, authentication);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.ok(transactionService.transferMoney(transferMoneyDTO, authentication));
     }
 
 
-    @GetMapping("/list-transaction")
-    public RestResponse<ResponsePageAccount> listTransaction(@Valid ListTransactionPagingRequest page, Authentication authentication) {
-
-        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
-        return transactionService.listTransactionByAccountAndType(page, authentication, pageRequest);
+    @GetMapping("/list-transaction-by-type")
+    public RestResponse<ResponsePageAccount> listTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
+        return transactionService.listTransactionByAccountAndType(page, authentication);
     }
 
     @GetMapping("/list-all-transaction")
-    public RestResponse<ResponsePageAccount> listAllTransaction(@Valid ListTransactionPagingRequest page, Authentication authentication) {
-
-        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
-        return transactionService.listAllTransactionByAccount(page, authentication, pageRequest);
+    public RestResponse<ResponsePageAccount> listAllTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
+        return transactionService.listAllTransactionByAccount(page, authentication);
     }
 
-   @GetMapping("/list-all-transaction-by-date")
-    public RestResponse<ResponsePageAccount> listTransactionByAccountAndTypeAndDate(@Valid  ListTransactionByDatePagingRequest page, Authentication authentication) {
-
-        PageRequest pageRequest = PageRequest.of(page.getPageNumber(), page.getPageSize());
-        return transactionService.listTransactionByAccountAndTypeAndDate(page, authentication, pageRequest);
-    }
 
 }

@@ -28,7 +28,7 @@ public class Transaction {
     private String beneficiaryPhone;
     private String createPerson;
     private Date createDate;
-
+    private Double balance;
     @ManyToOne
     @JoinColumn(name = "account_number")
     Account account;
