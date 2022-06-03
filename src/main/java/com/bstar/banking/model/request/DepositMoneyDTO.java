@@ -16,10 +16,8 @@ public class DepositMoneyDTO {
     @NotBlank
     @Size(min = 13, max = 16)
     private String accountNumber;
-
     @Min(value = 0)
     private Double amount;
-
     @NotBlank
     @Size(max = 4)
     private String pinCode;

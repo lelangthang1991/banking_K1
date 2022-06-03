@@ -115,7 +115,6 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         }
     }
 
-
     @Override
     public RestResponse<?> signupUser(SignupRequest signupRequest) {
         boolean isMailRegistered = userRepository.findById(signupRequest.getEmail()).isPresent();

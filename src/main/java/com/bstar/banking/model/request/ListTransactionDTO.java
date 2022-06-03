@@ -1,42 +1,36 @@
 package com.bstar.banking.model.request;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Date;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionDTO {
+public class ListTransactionDTO {
+
     @NotBlank
     @Size(min = 13, max = 16)
-    private String ownerNumber;
+    private String accountNumber;
+    private Integer accountType;
     private Integer transactionId;
-    @Min(value = 0)
-    private Double amount;
-    private Double balance;
-    @NotBlank
-    @Size(max = 4)
-    private String pinCode;
-    @NotBlank
-    @Size(max = 200)
-    private String body;
-    private String unitCurrency;
-    private Integer status;
+    @Min(value = 1)
+    @Max(value = 3)
     private Integer transactionType;
-    @NotBlank
-    @Size(min = 13, max = 16)
+    private Double amount;
+    private String body;
+    private Double balance;
+    private Boolean isActivated;
+    private String unitCurrency;
     private String beneficiaryAccountNumber;
-    private String beneficiaryName;
     private String beneficiaryEmail;
-    private String beneficiaryPhone;
-    private String createPerson;
     private Date createDate;
+    private String createPerson;
+
 }
