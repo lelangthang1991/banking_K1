@@ -14,23 +14,26 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table
-public class Account {
+public class Card {
     @Id
-    private String accountNumber;
+    private String cardNumber;
     private Double balance;
     private String pinCode;
-    private Integer accountType;
+    private Integer cardType;
     private Boolean isActivated;
     private String createPerson;
     private String updatePerson;
     private Date updateDate;
     private Date createDate;
+    private Integer level;
+    private Double dailyLimitAmount;
+    private Double monthlyLimitAmount;
 
     @ManyToOne
     @JoinColumn(name = "user_email")
     private User user;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "account")
+    @OneToMany(mappedBy = "card")
     List<Transaction> transactions;
 }

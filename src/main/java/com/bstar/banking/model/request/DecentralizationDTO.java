@@ -4,12 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ActivateAccountDTO {
+public class DecentralizationDTO {
+    @Email
     @NotBlank
-    private String accountNumber;
+    private String email;
+    @NotNull
+    @Min(0)
+    @Max(1)
+    private Integer role;
 }

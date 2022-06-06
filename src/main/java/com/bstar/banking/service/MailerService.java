@@ -25,7 +25,7 @@ public interface MailerService {
      */
     void addToQueue(MailDefault mail);
 
-    void sendWelcome(User account, String verifycode);
+    void sendWelcome(User card, String verifycode);
 
     RestResponse<?> sendVerifyCode(String email);
 }

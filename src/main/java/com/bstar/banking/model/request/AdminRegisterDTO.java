@@ -15,7 +15,7 @@ public class AdminRegisterDTO {
     private String email;
     @Min(1)
     @Max(5)
-    private int accountType;
+    private int cardType;
     @NotBlank
     @Size(min = 4, max = 4, message = "pincode requires 4 numbers")
     private String pinCode;

@@ -12,10 +12,10 @@ public class UserString {
     public static final String PHONE_WAS_REGISTERED = "Phone number was registered";
     public static final String PASSWORD_DOES_NOT_MATCH = "Password does not match";
     public static final String CONFIRM_PASSWORD_DOES_NOT_MATCH = "Confirm password does not match";
-    public static final String PLEASE_CHECK_YOUR_EMAIL = "Please check your email to activate your account!";
+    public static final String PLEASE_CHECK_YOUR_EMAIL = "Please check your email to activate your card!";
 
-    public static final String SUCCESSFUL_ACCOUNT_ACTIVATION = "Successful account activation";
-    public static final String ACCOUNT_ACTIVATION_FAILED = "Account activation failed";
+    public static final String SUCCESSFUL_CARD_ACTIVATION = "Successful card activation";
+    public static final String CARD_ACTIVATION_FAILED = "Card activation failed";
     public static final String USER_LOGOUT_SUCCESS = "User logout success";
 
     public static final String REGISTRATION_FAILED = "Registration failed, please try again!";
@@ -28,8 +28,12 @@ public class UserString {
     public static final String USER_NOT_FOUND = "User not found";
 
     public static final String UPDATE_SUCCESSFUL = "Update successful";
-    public static final String UPDATE_FAILURE = "UUPDATE FAILURE";
+    public static final String UPDATE_FAILURE = "UPDATE FAILURE";
     public static final String GET_USER_INFO_SUCCESS = "Get user info success";
+    public static final String NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE = "New Password can not be the same as the old one";
+    public static final String NEW_PHONE_NUMBER_ALREADY_EXISTS = "New phone number already exists";
+    public static final String USER_DISABLED_SUCCESS = "User disabled success";
+    public static final String USER_DECENTRALIZATION_SUCCESS = "User decentralization success";
 
 
 }

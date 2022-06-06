@@ -25,9 +25,9 @@ public class UserDTO implements Serializable {
     private String address;
     private String phone;
     private Boolean isActivated;
-    private String create_person;
-    private String update_person;
-    private Date update_date;
-    private Date create_date;
-    private List<CardResponse> accounts;
+    private String createPerson;
+    private String updatePerson;
+    private Date updateDate;
+    private Date createDate;
+    private List<CardResponse> cards;
 }

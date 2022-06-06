@@ -10,7 +10,7 @@ public class TransactionString {
     public static final String TRANSFER_MONEY_SUCCESSFUL = "Transfer money successful";
     public static final String BALANCE_IS_NOT_ENOUGH = "Balance is not enough";
     public static final String CARD_NOT_ACTIVATED = "Card has not been activated";
-    public static final String BENEFICILAL_CARD_NOT_ACTIVATED = "Beneficial Card has not been activated";
+    public static final String BENEFICIAL_CARD_NOT_ACTIVATED = "Beneficial Card has not been activated";
     public static final String GET_LIST_SUCCESSFULLY = "Get list successfully";
     public static final String GET_LIST_FAIL = "Get list fail";
     public static final String TRANSACTION_LIST_NOT_FOUND = "Transaction list not found";

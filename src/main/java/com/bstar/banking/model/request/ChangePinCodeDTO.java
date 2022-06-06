@@ -11,7 +11,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class ChangePinCodeDTO {
     @NotBlank
-    private String accountNumber;
+    private String cardNumber;
     @NotBlank
     private String pinCode;
     @NotBlank

@@ -8,7 +8,7 @@ import javax.validation.constraints.Size;
 
 @Data
 public class ListTransactionPagingRequest {
-    private String accountNumber;
+    private String cardNumber;
     private Integer transactionType;
     private String keyword;
     private String sort;

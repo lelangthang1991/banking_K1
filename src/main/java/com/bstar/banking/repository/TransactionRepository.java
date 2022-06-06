@@ -12,36 +12,36 @@ import java.util.Date;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
 
-    @Query("SELECT t FROM Transaction t WHERE (t.transactionType = ?1 AND t.account.user.email = ?2)")
+    @Query("SELECT t FROM Transaction t WHERE (t.transactionType = ?1 AND t.card.user.email = ?2)")
     Page<Transaction> listTransactionByType(Integer transactionType, String email, Pageable pageable);
 
     @Query("SELECT t FROM Transaction t WHERE (t.transactionType = ?1 "
-            + " AND t.account.accountNumber = ?2"
-            + " AND t.account.user.email = ?3)"
+            + " AND t.card.cardNumber = ?2"
+            + " AND t.card.user.email = ?3)"
             + " OR  ( t.createDate BETWEEN ?4 AND ?5 )")
-    Page<Transaction> listTransactionByAccountAndType(Integer transactionType, String accountNumber,
+    Page<Transaction> listTransactionByCardAndType(Integer transactionType, String cardNumber,
                                                       String email, Date startDate, Date endDate,
                                                       Pageable pageable);
 
     @Query("SELECT t FROM Transaction t WHERE "
-            + "(t.account.accountNumber = ?1 "
-            + "AND t.account.user.email = ?2)"
+            + "(t.card.cardNumber = ?1 "
+            + "AND t.card.user.email = ?2)"
             + "OR  ( t.createDate BETWEEN ?3 AND ?4 )")
-    Page<Transaction> listAllTransactionByAccount(String accountNumber, String email,
+    Page<Transaction> listAllTransactionByCard(String cardNumber, String email,
                                                   Date startDate, Date endDate,
                                                   Pageable pageable);
 
     @Query("SELECT t FROM Transaction t WHERE "
-            + " (t.account.user.email = ?1) "
+            + " (t.card.user.email = ?1) "
             + " OR ( t.createDate BETWEEN ?2 AND ?3 )")
     Page<Transaction> listAllTransaction(String email, Date startDate,
                                          Date endDate, Pageable pageable);
 
 
     @Query(value = "SELECT t FROM Transaction t WHERE"
-            + " t.account.accountNumber = ?1 AND t.account.user.email = ?2"
+            + " t.card.cardNumber = ?1 AND t.card.user.email = ?2"
             + " OR t.createDate BETWEEN ?3 AND ?4  ")
-    Page<Transaction> getTransactionBetween(String accountNumber, String email
+    Page<Transaction> getTransactionBetween(String cardNumber, String email
             , Date startDate, Date endDate
             , Pageable pageable);
 

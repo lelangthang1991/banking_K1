@@ -18,7 +18,7 @@ public class TransactionDTO {
     @NotBlank
     @Size(min = 13, max = 16)
     private String ownerNumber;
-    private Integer transactionId;
+    private String transactionId;
     @Min(value = 0)
     private Double amount;
     private Double balance;
@@ -33,7 +33,7 @@ public class TransactionDTO {
     private Integer transactionType;
     @NotBlank
     @Size(min = 13, max = 16)
-    private String beneficiaryAccountNumber;
+    private String beneficiaryCardNumber;
     private String beneficiaryName;
     private String beneficiaryEmail;
     private String beneficiaryPhone;

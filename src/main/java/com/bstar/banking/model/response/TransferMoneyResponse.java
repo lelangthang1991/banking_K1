@@ -18,7 +18,7 @@ public class TransferMoneyResponse {
     private Double balance;
     private String body;
     private Integer transactionType;
-    private String beneficiaryAccountNumber;
+    private String beneficiaryCardNumber;
     private String beneficiaryName;
     private String beneficiaryEmail;
     private String beneficiaryPhone;
