@@ -1,6 +1,7 @@
 package com.bstar.banking.controller.admin;
 
 import com.bstar.banking.model.request.ActivateCardDTO;
+import com.bstar.banking.model.request.FilterCardDTO;
 import com.bstar.banking.model.request.PagingRequest;
 import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
@@ -44,6 +45,11 @@ public class CardAdminController {
     @DeleteMapping("/{cardNumber}")
     public RestResponse<?> cardDisabled(@PathVariable("cardNumber") String cardNumber) {
         return cardService.cardDisabled(cardNumber);
+    }
+
+    @GetMapping("/get-all-card")
+    public ResponseEntity<RestResponse<?>> findAllCardFiltered(@Valid FilterCardDTO cardDTO) {
+        return ResponseEntity.ok(cardService.findAllCardFiltered(cardDTO));
     }
 
     @PostMapping("/activate-card")

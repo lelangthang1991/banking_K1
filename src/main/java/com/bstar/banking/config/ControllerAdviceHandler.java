@@ -4,8 +4,7 @@ import com.bstar.banking.exception.CompareException;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.exception.PinCodeException;
 import com.bstar.banking.model.response.ExceptionResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +24,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
+@Log4j2
 @ControllerAdvice
 public class ControllerAdviceHandler extends ResponseEntityExceptionHandler {
-    private final Logger logger = LoggerFactory.getLogger(ControllerAdviceHandler.class);
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> handlerNotFoundException(NotFoundException ex) {
