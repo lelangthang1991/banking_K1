@@ -10,6 +10,7 @@ import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.jwt.JwtUtil;
 import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.LoginResponse;
+import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.SessionRepository;
 import com.bstar.banking.repository.UserRepository;
@@ -18,8 +19,13 @@ import com.bstar.banking.service.AbstractCommonService;
 import com.bstar.banking.service.MailerService;
 import com.bstar.banking.service.UserService;
 import com.bstar.banking.utils.DeviceType;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,7 +39,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import static com.bstar.banking.common.CardString.GET_LIST_CARD_SUCCESS;
 import static com.bstar.banking.common.JwtString.GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS;
 import static com.bstar.banking.common.JwtString.REFRESH_TOKEN_NOT_FOUND;
 import static com.bstar.banking.common.StatusCodeString.*;
@@ -139,10 +148,10 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
                 user.setAddress(signupRequest.getAddress());
                 user.setPhone(signupRequest.getPhone());
                 user.setIsActivated(false);
-                user.setCreate_date(new Date());
-                user.setUpdate_date(new Date());
-                user.setCreate_person(signupRequest.getEmail());
-                user.setUpdate_person(signupRequest.getEmail());
+                user.setCreateDate(new Date());
+                user.setUpdateDate(new Date());
+                user.setCreatePerson(signupRequest.getEmail());
+                user.setUpdatePerson(signupRequest.getEmail());
                 user.setVerifyCode(verifyCode);
                 userRepository.save(user);
                 mailerService.sendWelcome(user, verifyCode);
@@ -160,9 +169,9 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
             user.setRole(1);
             user.setIsActivated(true);
             userRepository.save(user);
-            return new RestResponse<>(OK, SUCCESSFUL_ACCOUNT_ACTIVATION);
+            return new RestResponse<>(OK, SUCCESSFUL_CARD_ACTIVATION);
         }
-        return new RestResponse<>(BAD_REQUEST, ACCOUNT_ACTIVATION_FAILED);
+        return new RestResponse<>(BAD_REQUEST, CARD_ACTIVATION_FAILED);
     }
 
     @Override
@@ -175,8 +184,8 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         user.setGender(updateRequest.getGender());
         user.setAddress(updateRequest.getAddress());
         user.setPhone(updateRequest.getPhone());
-        user.setUpdate_date(new Date());
-        user.setUpdate_person(user.getEmail());
+        user.setUpdateDate(new Date());
+        user.setUpdatePerson(user.getEmail());
         userRepository.save(user);
         return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
     }
@@ -244,5 +253,124 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
                 new UsernamePasswordAuthenticationToken(null, null, null);
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
         return new RestResponse<>(OK, USER_LOGOUT_SUCCESS);
+    }
+
+    @Override
+    public RestResponse<?> findOneUser(String email) {
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, userDTO);
+    }
+
+    @Override
+    public RestResponse<?> findAllUserFiltered(FilterUserDTO userDTO) {
+        if (StringUtils.isBlank(userDTO.getSortField()) || StringUtils.isBlank(userDTO.getSortDir())) {
+            Pageable pageable = org.springframework.data.domain.PageRequest.of(userDTO.getPageNumber(), userDTO.getPageSize());
+            Page<User> cards = userRepository.findAllUserFiltered(userDTO, pageable);
+            List<UserDTO> cardDTOS = cards.stream()
+                    .map(acc -> modelMapper.map(acc, UserDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_CARD_SUCCESS, new ResponsePageCard(
+                    cards.getNumber(),
+                    cards.getSize(),
+                    cards.getTotalPages(),
+                    cards.getTotalElements(),
+                    cardDTOS));
+        } else {
+            Sort sort = Sort.by(userDTO.getSortField());
+            sort = userDTO.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
+            Pageable pageable = PageRequest.of(userDTO.getPageNumber(), userDTO.getPageSize(), sort);
+            Page<User> cards = userRepository.findAllUserFiltered(userDTO, pageable);
+            List<UserDTO> cardDTOS = cards.stream()
+                    .map(acc -> modelMapper.map(acc, UserDTO.class))
+                    .collect(Collectors.toList());
+            return new RestResponse<>(OK, GET_LIST_CARD_SUCCESS, new ResponsePageCard(
+                    cards.getNumber(),
+                    cards.getSize(),
+                    cards.getTotalPages(),
+                    cards.getTotalElements(),
+                    cardDTOS));
+        }
+    }
+
+    @Override
+    public RestResponse<?> userAdminCreate(SignupRequest userDTO) {
+        boolean isMailRegistered = userRepository.findById(userDTO.getEmail()).isPresent();
+        boolean isPhoneRegistered = userRepository.findByPhone(userDTO.getPhone()).isPresent();
+        if (isMailRegistered) {
+            throw new CompareException(EMAIl_WAS_REGISTERED);
+        } else if (isPhoneRegistered) {
+            throw new CompareException(PHONE_WAS_REGISTERED);
+        } else if (!userDTO.getPassword().equals(userDTO.getConfirm())) {
+            throw new CompareException(PASSWORD_DOES_NOT_MATCH);
+        } else {
+            try {
+                User user = new User();
+                String verifyCode = this.verifyCode.Random();
+                user.setEmail(userDTO.getEmail());
+                user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+                user.setFirstName(userDTO.getFirstName());
+                user.setLastName(userDTO.getLastName());
+                user.setDob(userDTO.getDob());
+                user.setGender(userDTO.getGender());
+                user.setAddress(userDTO.getAddress());
+                user.setPhone(userDTO.getPhone());
+                user.setIsActivated(userDTO.getIsActivated());
+                user.setCreateDate(new Date());
+                user.setUpdateDate(new Date());
+                user.setCreatePerson(userDTO.getEmail());
+                user.setUpdatePerson(userDTO.getEmail());
+                user.setVerifyCode(verifyCode);
+                userRepository.save(user);
+                mailerService.sendWelcome(user, verifyCode);
+                return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
+            } catch (Exception e) {
+                throw new CompareException(REGISTRATION_FAILED);
+            }
+        }
+    }
+
+    @Override
+    public RestResponse<?> userAdminUpdate(String email, UserDTO userDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String emailAdmin = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        if (user.getPassword().equals(userDTO.getPassword())) {
+            throw new CompareException(NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
+        }
+        if (userRepository.findByPhone(userDTO.getPhone()).isPresent()) {
+            throw new CompareException(NEW_PHONE_NUMBER_ALREADY_EXISTS);
+        }
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setFirstName(userDTO.getFirstName());
+        user.setLastName(userDTO.getLastName());
+        user.setAddress(userDTO.getAddress());
+        user.setGender(userDTO.getGender());
+        user.setPhone(userDTO.getPhone());
+        user.setDob(userDTO.getDob());
+        user.setUpdatePerson(emailAdmin);
+        user.setUpdateDate(new Date());
+        User userSave = userRepository.save(user);
+        return new RestResponse<>(OK, UPDATE_SUCCESSFUL, modelMapper.map(userSave, UserDTO.class));
+    }
+
+    @Override
+    public RestResponse<?> userAdminDisabled(String email) {
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        user.setIsActivated(false);
+        userRepository.save(user);
+        return new RestResponse<>(OK, USER_DISABLED_SUCCESS);
+    }
+
+    @Override
+    public RestResponse<?> userAdminDecentralization(DecentralizationDTO dto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findById(dto.getEmail()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        user.setRole(dto.getRole());
+        user.setUpdatePerson(email);
+        user.setUpdateDate(new Date());
+        userRepository.save(user);
+        return new RestResponse<>(OK, USER_DECENTRALIZATION_SUCCESS);
     }
 }

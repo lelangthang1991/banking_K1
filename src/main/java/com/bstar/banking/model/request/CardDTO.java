@@ -10,16 +10,19 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountDTO {
+public class CardDTO {
     @NotBlank
-    private String accountNumber;
+    private String cardNumber;
     private Double balance;
     @NotBlank
     private String pinCode;
-    private Integer accountType;
+    private Integer cardType;
     private Boolean isActivated;
     private String createPerson;
     private String updatePerson;
     private Date updateDate;
     private Date createDate;
+    private Integer level;
+    private Double dailyLimitAmount;
+    private Double monthlyLimitAmount;
 }

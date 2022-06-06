@@ -1,6 +1,6 @@
 package com.bstar.banking.service.impl;
 
-import com.bstar.banking.entity.Account;
+import com.bstar.banking.entity.Card;
 import com.bstar.banking.entity.Transaction;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.CompareException;
@@ -8,9 +8,9 @@ import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.DepositMoneyDTO;
 import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
 import com.bstar.banking.model.request.TransactionDTO;
-import com.bstar.banking.model.response.ResponsePageAccount;
+import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
-import com.bstar.banking.repository.AccountRepository;
+import com.bstar.banking.repository.CardRepository;
 import com.bstar.banking.repository.TransactionRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.TransactionService;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.bstar.banking.common.AccountString.ACCOUNT_NUMBER_NOT_FOUND;
+import static com.bstar.banking.common.CardString.CARD_NUMBER_NOT_FOUND;
 import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.TransactionString.*;
 import static com.bstar.banking.common.UserString.GET_USER_EMAIL_NOT_FOUND;
@@ -40,7 +40,7 @@ import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
 @Service
 public class TransactionImpl implements TransactionService {
     @Autowired
-    AccountRepository accountRepository;
+    CardRepository cardRepository;
     @Autowired
     UserRepository userRepository;
 
@@ -54,40 +54,40 @@ public class TransactionImpl implements TransactionService {
     public RestResponse<?> depositMoney(DepositMoneyDTO depositMoneyDTO, Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-        Optional<Account> account = user.getAccounts().stream()
-                .filter(us -> us.getAccountNumber().equals(depositMoneyDTO.getAccountNumber()))
+        Optional<Card> card = user.getCards().stream()
+                .filter(us -> us.getCardNumber().equals(depositMoneyDTO.getCardNumber()))
                 .findFirst();
-        Account getAccount = account.get();
-        if (!getAccount.getAccountNumber().equals(depositMoneyDTO.getAccountNumber())) {
-            throw new CompareException(ACCOUNT_NUMBER_NOT_FOUND);
+        Card getCard = card.get();
+        if (!getCard.getCardNumber().equals(depositMoneyDTO.getCardNumber())) {
+            throw new CompareException(CARD_NUMBER_NOT_FOUND);
         }
-        if (getAccount.getIsActivated().equals(false)) {
+        if (getCard.getIsActivated().equals(false)) {
             throw new CompareException(CARD_NOT_ACTIVATED);
         }
-        if (!depositMoneyDTO.getPinCode().equals(getAccount.getPinCode())) {
+        if (!depositMoneyDTO.getPinCode().equals(getCard.getPinCode())) {
             throw new CompareException(PINCODE_DOES_NOT_MATCH);
         }
-        getAccount.setBalance(getAccount.getBalance() + depositMoneyDTO.getAmount());
-        accountRepository.save(getAccount);
+        getCard.setBalance(getCard.getBalance() + depositMoneyDTO.getAmount());
+        cardRepository.save(getCard);
         Transaction transaction = new Transaction();
         transaction.setAmount(depositMoneyDTO.getAmount());
         transaction.setUnitCurrency("VND");
         transaction.setStatus(true);
         transaction.setTransactionType(1);
-        transaction.setBeneficiaryAccountNumber(depositMoneyDTO.getAccountNumber());
-        transaction.setBeneficiaryName(account.get().getUser().getFirstName());
-        transaction.setBeneficiaryEmail(getAccount.getUser().getEmail());
-        transaction.setBeneficiaryPhone(getAccount.getUser().getPhone());
-        transaction.setCreatePerson(getAccount.getUser().getEmail());
+        transaction.setBeneficiaryCardNumber(depositMoneyDTO.getCardNumber());
+        transaction.setBeneficiaryName(card.get().getUser().getFirstName());
+        transaction.setBeneficiaryEmail(getCard.getUser().getEmail());
+        transaction.setBeneficiaryPhone(getCard.getUser().getPhone());
+        transaction.setCreatePerson(getCard.getUser().getEmail());
         transaction.setCreateDate(new Date());
-        transaction.setBalance(getAccount.getBalance());
-        transaction.setAccount(getAccount);
+        transaction.setBalance(getCard.getBalance());
+        transaction.setCard(getCard);
         transactionRepository.save(transaction);
         TransactionDTO transactionDTO;
         transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
-        transactionDTO.setOwnerNumber(getAccount.getAccountNumber());
+        transactionDTO.setOwnerNumber(getCard.getCardNumber());
         transactionDTO.setTransactionId(transaction.getTransactionId());
-        transactionDTO.setBalance(getAccount.getBalance());
+        transactionDTO.setBalance(getCard.getBalance());
         return new RestResponse<>(OK, DEPOSIT_SUCCESSFUL,
                 transactionDTO);
     }
@@ -97,43 +97,43 @@ public class TransactionImpl implements TransactionService {
 
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-        Optional<Account> account = user.getAccounts().stream()
-                .filter(us -> us.getAccountNumber().equals(withdrawMoneyDTO.getAccountNumber()))
+        Optional<Card> card = user.getCards().stream()
+                .filter(us -> us.getCardNumber().equals(withdrawMoneyDTO.getCardNumber()))
                 .findFirst();
-        Account getAccount = account.get();
-        if (!getAccount.getAccountNumber().equals(withdrawMoneyDTO.getAccountNumber())) {
-            throw new CompareException(ACCOUNT_NUMBER_NOT_FOUND);
+        Card getCard = card.get();
+        if (!getCard.getCardNumber().equals(withdrawMoneyDTO.getCardNumber())) {
+            throw new CompareException(CARD_NUMBER_NOT_FOUND);
         }
-        if (getAccount.getIsActivated().equals(false)) {
+        if (getCard.getIsActivated().equals(false)) {
             throw new CompareException(CARD_NOT_ACTIVATED);
         }
-        if (!withdrawMoneyDTO.getPinCode().equals(getAccount.getPinCode())) {
+        if (!withdrawMoneyDTO.getPinCode().equals(getCard.getPinCode())) {
             throw new CompareException(PINCODE_DOES_NOT_MATCH);
         }
-        if (withdrawMoneyDTO.getAmount() > getAccount.getBalance()) {
+        if (withdrawMoneyDTO.getAmount() > getCard.getBalance()) {
             throw new CompareException(BALANCE_IS_NOT_ENOUGH);
         }
-        getAccount.setBalance(getAccount.getBalance() - withdrawMoneyDTO.getAmount());
-        accountRepository.save(getAccount);
+        getCard.setBalance(getCard.getBalance() - withdrawMoneyDTO.getAmount());
+        cardRepository.save(getCard);
         Transaction transaction = new Transaction();
         transaction.setAmount(withdrawMoneyDTO.getAmount());
         transaction.setUnitCurrency("VND");
         transaction.setStatus(true);
         transaction.setTransactionType(2);
-        transaction.setBeneficiaryAccountNumber(getAccount.getAccountNumber());
-        transaction.setBeneficiaryName(account.get().getUser().getFirstName());
-        transaction.setBeneficiaryEmail(getAccount.getUser().getEmail());
-        transaction.setBeneficiaryPhone(getAccount.getUser().getPhone());
-        transaction.setCreatePerson(getAccount.getUser().getEmail());
+        transaction.setBeneficiaryCardNumber(getCard.getCardNumber());
+        transaction.setBeneficiaryName(card.get().getUser().getFirstName());
+        transaction.setBeneficiaryEmail(getCard.getUser().getEmail());
+        transaction.setBeneficiaryPhone(getCard.getUser().getPhone());
+        transaction.setCreatePerson(getCard.getUser().getEmail());
         transaction.setCreateDate(new Date());
-        transaction.setAccount(getAccount);
-        transaction.setBalance(getAccount.getBalance());
+        transaction.setCard(getCard);
+        transaction.setBalance(getCard.getBalance());
         transactionRepository.save(transaction);
         TransactionDTO transactionDTO;
         transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
-        transactionDTO.setOwnerNumber(getAccount.getAccountNumber());
+        transactionDTO.setOwnerNumber(getCard.getCardNumber());
         transactionDTO.setTransactionId(transaction.getTransactionId());
-        transactionDTO.setBalance(getAccount.getBalance());
+        transactionDTO.setBalance(getCard.getBalance());
         return new RestResponse<>(OK, DEPOSIT_SUCCESSFUL,
                 transactionDTO);
     }
@@ -141,62 +141,62 @@ public class TransactionImpl implements TransactionService {
     public RestResponse<?> transferMoney(TransactionDTO transferMoneyDTO, Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-        Optional<Account> account = user.getAccounts().stream()
-                .filter(us -> us.getAccountNumber().equals(transferMoneyDTO.getOwnerNumber()))
+        Optional<Card> card = user.getCards().stream()
+                .filter(us -> us.getCardNumber().equals(transferMoneyDTO.getOwnerNumber()))
                 .findFirst();
-        Account accountTransfer = account.get();
-        Account accountBeneficial = accountRepository.findById(transferMoneyDTO.
-                        getBeneficiaryAccountNumber()).
-                orElseThrow(() -> new NotFoundException(ACCOUNT_NUMBER_NOT_FOUND));
-        if (accountTransfer.getAccountNumber().equals(accountBeneficial.getAccountNumber())) {
+        Card cardTransfer = card.get();
+        Card cardBeneficial = cardRepository.findById(transferMoneyDTO.
+                        getBeneficiaryCardNumber()).
+                orElseThrow(() -> new NotFoundException(CARD_NUMBER_NOT_FOUND));
+        if (cardTransfer.getCardNumber().equals(cardBeneficial.getCardNumber())) {
             throw new CompareException("Cannot transfer money to the same card");
         }
-        if (accountBeneficial.getIsActivated().equals(false)) {
-            throw new CompareException(BENEFICILAL_CARD_NOT_ACTIVATED);
+        if (cardBeneficial.getIsActivated().equals(false)) {
+            throw new CompareException(BENEFICIAL_CARD_NOT_ACTIVATED);
         }
-        if (!transferMoneyDTO.getPinCode().equals(accountTransfer.getPinCode())) {
+        if (!transferMoneyDTO.getPinCode().equals(cardTransfer.getPinCode())) {
             throw new CompareException(PINCODE_DOES_NOT_MATCH);
         }
-        if (transferMoneyDTO.getAmount() > accountTransfer.getBalance()) {
+        if (transferMoneyDTO.getAmount() > cardTransfer.getBalance()) {
             throw new CompareException(BALANCE_IS_NOT_ENOUGH);
         }
 
-        accountTransfer.setBalance(accountTransfer.getBalance() - transferMoneyDTO.getAmount());
-        accountRepository.save(accountTransfer);
-        accountBeneficial.setBalance(accountBeneficial.getBalance() + transferMoneyDTO.getAmount());
-        accountRepository.save(accountBeneficial);
+        cardTransfer.setBalance(cardTransfer.getBalance() - transferMoneyDTO.getAmount());
+        cardRepository.save(cardTransfer);
+        cardBeneficial.setBalance(cardBeneficial.getBalance() + transferMoneyDTO.getAmount());
+        cardRepository.save(cardBeneficial);
         Transaction transaction = new Transaction();
         transaction.setAmount(transferMoneyDTO.getAmount());
         transaction.setUnitCurrency("VND");
         transaction.setStatus(true);
         transaction.setTransactionType(3);
-        transaction.setBeneficiaryAccountNumber(accountBeneficial.getAccountNumber());
-        transaction.setBeneficiaryName(accountBeneficial.getUser().getFirstName() + " " + accountBeneficial.getUser().getLastName());
-        transaction.setBeneficiaryEmail(accountBeneficial.getUser().getEmail());
-        transaction.setBeneficiaryPhone(accountBeneficial.getUser().getPhone());
-        transaction.setCreatePerson(accountTransfer.getUser().getEmail());
+        transaction.setBeneficiaryCardNumber(cardBeneficial.getCardNumber());
+        transaction.setBeneficiaryName(cardBeneficial.getUser().getFirstName() + " " + cardBeneficial.getUser().getLastName());
+        transaction.setBeneficiaryEmail(cardBeneficial.getUser().getEmail());
+        transaction.setBeneficiaryPhone(cardBeneficial.getUser().getPhone());
+        transaction.setCreatePerson(cardTransfer.getUser().getEmail());
         transaction.setCreateDate(new Date());
-        transaction.setAccount(accountTransfer);
+        transaction.setCard(cardTransfer);
         transaction.setBody(transferMoneyDTO.getBody());
-        transaction.setBalance(accountTransfer.getBalance());
+        transaction.setBalance(cardTransfer.getBalance());
         transactionRepository.save(transaction);
         TransactionDTO transactionDTO;
         transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
-        transactionDTO.setOwnerNumber(accountTransfer.getAccountNumber());
-        transactionDTO.setBalance(accountTransfer.getBalance());
+        transactionDTO.setOwnerNumber(cardTransfer.getCardNumber());
+        transactionDTO.setBalance(cardTransfer.getBalance());
         transactionDTO.setTransactionId(transaction.getTransactionId());
         return new RestResponse<>(OK, TRANSFER_MONEY_SUCCESSFUL,
                 transactionDTO);
     }
 
     @Override
-    public RestResponse<ResponsePageAccount> listTransactionByAccountAndType(ListTransactionByDatePagingRequest lDate, Authentication authentication) {
+    public RestResponse<ResponsePageCard> listTransactionByCardAndType(ListTransactionByDatePagingRequest lDate, Authentication authentication) {
         if (StringUtils.isBlank(lDate.getSortField()) || StringUtils.isBlank(lDate.getSortDir())) {
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize());
             String email = authentication.getName();
             User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listTransactionByAccountAndType(lDate.getTransactionType(),
-                    lDate.getAccountNumber(),
+            Page<Transaction> listPage = transactionRepository.listTransactionByCardAndType(lDate.getTransactionType(),
+                    lDate.getCardNumber(),
                     user.getEmail(),
                     lDate.getStartDate(),
                     lDate.getEndDate(),
@@ -205,8 +205,8 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getAccountNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageAccount(listPage.getNumber(),
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),
@@ -217,8 +217,8 @@ public class TransactionImpl implements TransactionService {
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize(), sort);
             String email = authentication.getName();
             User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listTransactionByAccountAndType(lDate.getTransactionType(),
-                    lDate.getAccountNumber(),
+            Page<Transaction> listPage = transactionRepository.listTransactionByCardAndType(lDate.getTransactionType(),
+                    lDate.getCardNumber(),
                     user.getEmail(),
                     lDate.getStartDate(),
                     lDate.getEndDate(),
@@ -227,8 +227,8 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getAccountNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageAccount(listPage.getNumber(),
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),
@@ -237,14 +237,14 @@ public class TransactionImpl implements TransactionService {
     }
 
     @Override
-    public RestResponse<ResponsePageAccount> listAllTransactionByAccount(ListTransactionByDatePagingRequest lDate,
-                                                                         Authentication authentication) {
+    public RestResponse<ResponsePageCard> listAllTransactionByCard(ListTransactionByDatePagingRequest lDate,
+                                                                   Authentication authentication) {
 
         if (StringUtils.isBlank(lDate.getSortField()) || StringUtils.isBlank(lDate.getSortDir())) {
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize());
             String email = authentication.getName();
             User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listAllTransactionByAccount(lDate.getAccountNumber(),
+            Page<Transaction> listPage = transactionRepository.listAllTransactionByCard(lDate.getCardNumber(),
                     user.getEmail(),
                     lDate.getStartDate(),
                     lDate.getEndDate(),
@@ -254,8 +254,8 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getAccountNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageAccount(listPage.getNumber(),
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),
@@ -266,7 +266,7 @@ public class TransactionImpl implements TransactionService {
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize(), sort);
             String email = authentication.getName();
             User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listAllTransactionByAccount(lDate.getAccountNumber(),
+            Page<Transaction> listPage = transactionRepository.listAllTransactionByCard(lDate.getCardNumber(),
                     user.getEmail(),
                     lDate.getStartDate(),
                     lDate.getEndDate(),
@@ -275,8 +275,8 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getAccountNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageAccount(listPage.getNumber(),
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),

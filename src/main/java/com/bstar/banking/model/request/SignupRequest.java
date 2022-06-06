@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Date;
+
 
 @Data
 @Builder
@@ -17,10 +19,12 @@ import java.util.Date;
 public class SignupRequest {
     @Email
     @NotBlank
+    @Pattern(regexp = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+            + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$", message = "Invalid email format")
     private String email;
-    @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters")
+    @Pattern(regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,20}$", message = "Invalid password format")
     private String password;
-    @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters")
+    @Pattern(regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,20}$", message = "Invalid confirm password format")
     private String confirm;
     @NotBlank
     private String firstName;
@@ -30,7 +34,7 @@ public class SignupRequest {
     private Integer gender;
     @NotBlank
     private String address;
-    @Size(min = 10, max = 14, message = "phone must be number and between 10 and 20 characters")
+    @Size(min = 10, max = 10, message = "phone must be number 10 characters")
     private String phone;
     private Boolean isActivated;
     private String createPerson;

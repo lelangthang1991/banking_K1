@@ -43,7 +43,8 @@ public class ControllerAdviceHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
-        logger.error(ex.getMessage());
+        logger.error("IllegalArgumentException " + ex.getMessage());
+        ex.getStackTrace();
         return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", ex.getMessage()));
     }
 

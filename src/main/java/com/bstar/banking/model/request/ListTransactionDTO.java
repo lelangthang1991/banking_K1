@@ -17,8 +17,8 @@ public class ListTransactionDTO {
 
     @NotBlank
     @Size(min = 13, max = 16)
-    private String accountNumber;
-    private Integer accountType;
+    private String cardNumber;
+    private Integer cardType;
     private Integer transactionId;
     @Min(value = 1)
     @Max(value = 3)
@@ -28,7 +28,7 @@ public class ListTransactionDTO {
     private Double balance;
     private Boolean isActivated;
     private String unitCurrency;
-    private String beneficiaryAccountNumber;
+    private String beneficiaryCardNumber;
     private String beneficiaryEmail;
     private Date createDate;
     private String createPerson;

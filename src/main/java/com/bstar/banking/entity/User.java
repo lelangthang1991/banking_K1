@@ -30,10 +30,10 @@ public class User {
     private String address;
     private String phone;
     private Boolean isActivated;
-    private String create_person;
-    private String update_person;
-    private Date update_date;
-    private Date create_date;
+    private String createPerson;
+    private String updatePerson;
+    private Date updateDate;
+    private Date createDate;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user")
@@ -41,7 +41,7 @@ public class User {
 
     @JsonIgnore
     @OneToMany(mappedBy = "user")
-    List<Account> accounts;
+    List<Card> cards;
 
 
 }

@@ -83,12 +83,12 @@ public class MailerServiceImpl implements MailerService {
     }
 
     @Override
-    public void sendWelcome(User account, String verifycode) {
-        String url = "http://localhost:8080/api/v1/users/activate-user/" + account.getEmail() + "/" + verifycode;
+    public void sendWelcome(User card, String verifycode) {
+        String url = "http://localhost:8080/api/v1/users/activate-user/" + card.getEmail() + "/" + verifycode;
         try {
-            String to = account.getEmail();
+            String to = card.getEmail();
 
-            String text = "<hr><a href='" + url + "'>Click here to activate your account!</a>";
+            String text = "<hr><a href='" + url + "'>Click here to activate your card!</a>";
 
             MailDefault mail = new MailDefault(to, "Welcome to Web Banking", text);
 

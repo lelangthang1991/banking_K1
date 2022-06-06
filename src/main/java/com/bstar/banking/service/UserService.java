@@ -25,4 +25,18 @@ public interface UserService {
     RestResponse<LoginResponse> refreshToken();
 
     RestResponse<?> logout();
+
+    RestResponse<?> findOneUser(String email);
+
+    RestResponse<?> findAllUserFiltered(FilterUserDTO userDTO);
+
+    RestResponse<?> userAdminCreate(SignupRequest userDTO);
+
+    RestResponse<?> userAdminUpdate(String email, UserDTO userDTO);
+
+    RestResponse<?> userAdminDisabled(String email);
+
+    RestResponse<?> userAdminDecentralization(DecentralizationDTO dto);
+
+
 }

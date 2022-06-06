@@ -34,7 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().and().csrf().disable();
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         http.authorizeRequests()
-                .antMatchers("/api/v1/admin/accounts/**").hasAuthority("0")
+                .antMatchers("/api/v1/admin/cards/**").hasAuthority("0")
                 .antMatchers( "/api/v1/users/login",
                         "/api/v1/users/send-mail",
                         "/api/v1/users/forgot-password",

@@ -4,18 +4,18 @@ package com.bstar.banking.controller;
 import com.bstar.banking.model.request.DepositMoneyDTO;
 import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
 import com.bstar.banking.model.request.TransactionDTO;
-import com.bstar.banking.model.response.ResponsePageAccount;
+import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
-import static com.bstar.banking.common.StatusCodeString.OK;
-
+@PreAuthorize("hasAuthority('1')")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transactions")
@@ -39,13 +39,13 @@ public class TransactionController {
 
 
     @GetMapping("/list-transaction-by-type")
-    public RestResponse<ResponsePageAccount> listTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
-        return transactionService.listTransactionByAccountAndType(page, authentication);
+    public RestResponse<ResponsePageCard> listTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
+        return transactionService.listTransactionByCardAndType(page, authentication);
     }
 
     @GetMapping("/list-all-transaction")
-    public RestResponse<ResponsePageAccount> listAllTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
-        return transactionService.listAllTransactionByAccount(page, authentication);
+    public RestResponse<ResponsePageCard> listAllTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
+        return transactionService.listAllTransactionByCard(page, authentication);
     }
 
 

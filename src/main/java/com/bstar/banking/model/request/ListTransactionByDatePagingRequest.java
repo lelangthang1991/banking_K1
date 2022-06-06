@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Data
 public class ListTransactionByDatePagingRequest {
-    private String accountNumber;
+    private String cardNumber;
     private Integer transactionType;
     private String sortField;
     private String sortDir;

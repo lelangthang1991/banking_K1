@@ -3,6 +3,7 @@ package com.bstar.banking.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -14,23 +15,25 @@ import java.util.Date;
 @Table
 public class Transaction {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer transactionId;
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    private String transactionId;
     private Double amount;
     private String pinCode;
     private String body;
     private String unitCurrency;
     private Boolean status;
     private Integer transactionType;
-    private String beneficiaryAccountNumber;
+    private String beneficiaryCardNumber;
     private String beneficiaryName;
     private String beneficiaryEmail;
     private String beneficiaryPhone;
     private String createPerson;
     private Date createDate;
     private Double balance;
+    private Double fee;
     @ManyToOne
-    @JoinColumn(name = "account_number")
-    Account account;
+    @JoinColumn(name = "card_number")
+    Card card;
 
 }
