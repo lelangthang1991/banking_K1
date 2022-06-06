@@ -32,8 +32,9 @@ public class Transaction {
     private Date createDate;
     private Double balance;
     private Double fee;
+
     @ManyToOne
-    @JoinColumn(name = "card_number")
+    @JoinColumn(name = "account_number")
     Card card;
 
 }
