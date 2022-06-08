@@ -14,16 +14,11 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class RegisterBankCardRq {
 
-
-    @Min(1)
-    @Max(5)
-    private int cardType;
     @NotBlank
     @Size(min = 4, max = 4, message = "pincode requires 4 numbers")
     private String pinCode;
     @NotBlank
     @Size(max = 4, message = "pincode requires 4 numbers")
     private String confirmPinCode;
-
 
 }

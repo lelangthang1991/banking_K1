@@ -48,9 +48,9 @@ public class CardController {
         return ResponseEntity.ok(cardService.changePinCode(changePinCodeDTO, authentication));
     }
 
-    @PostMapping("/bank-register")
+    @PostMapping("/register")
     public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankCardRq registerBankCardRq,
                                                         Authentication authentication) {
-        return ResponseEntity.ok(cardService.bankRegister(registerBankCardRq, authentication));
+        return ResponseEntity.ok(cardService.cardRegister(registerBankCardRq, authentication));
     }
 }

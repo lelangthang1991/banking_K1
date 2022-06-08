@@ -14,9 +14,9 @@ import javax.validation.constraints.Size;
 public class DepositMoneyDTO {
 
     @NotBlank
-    @Size(min = 13, max = 16)
+    @Size(min = 13, max = 20)
     private String cardNumber;
-    @Min(value = 0)
+    @Min(value = 50000)
     private Double amount;
     @NotBlank
     @Size(max = 4)

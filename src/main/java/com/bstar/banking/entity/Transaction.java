@@ -19,11 +19,11 @@ public class Transaction {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String transactionId;
     private Double amount;
-    private String pinCode;
     private String body;
     private String unitCurrency;
     private Boolean status;
     private Integer transactionType;
+    private String transferNumber;
     private String beneficiaryCardNumber;
     private String beneficiaryName;
     private String beneficiaryEmail;
@@ -34,7 +34,7 @@ public class Transaction {
     private Double fee;
 
     @ManyToOne
-    @JoinColumn(name = "account_number")
+    @JoinColumn(name = "card_number")
     Card card;
 
 }

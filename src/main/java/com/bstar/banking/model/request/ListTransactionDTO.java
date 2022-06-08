@@ -19,7 +19,7 @@ public class ListTransactionDTO {
     @Size(min = 13, max = 16)
     private String cardNumber;
     private Integer cardType;
-    private Integer transactionId;
+    private String transactionId;
     @Min(value = 1)
     @Max(value = 3)
     private Integer transactionType;

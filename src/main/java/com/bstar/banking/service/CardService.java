@@ -22,7 +22,7 @@ public interface CardService {
 
     RestResponse<?> cardDisabled(String cardNumber);
 
-    RestResponse<?> bankRegister(RegisterBankCardRq bankRequest, Authentication authentication);
+    RestResponse<?> cardRegister(RegisterBankCardRq bankRequest, Authentication authentication);
 
     RestResponse<?> adminBankRegister(AdminRegisterDTO registerDTO, Authentication authentication);
 

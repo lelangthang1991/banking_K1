@@ -13,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class TransferMoneyResponse {
 
-    private Integer transactionId;
+    private String transactionId;
     private Double amount;
     private Double balance;
     private String body;

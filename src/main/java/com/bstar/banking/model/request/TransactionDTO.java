@@ -16,8 +16,9 @@ import java.util.Date;
 @AllArgsConstructor
 public class TransactionDTO {
     @NotBlank
-    @Size(min = 13, max = 16)
-    private String ownerNumber;
+    @Size(min = 13, max = 20)
+    private String transferNumber;
+
     private String transactionId;
     @Min(value = 0)
     private Double amount;
@@ -32,11 +33,12 @@ public class TransactionDTO {
     private Integer status;
     private Integer transactionType;
     @NotBlank
-    @Size(min = 13, max = 16)
+    @Size(min = 13, max = 20)
     private String beneficiaryCardNumber;
     private String beneficiaryName;
     private String beneficiaryEmail;
     private String beneficiaryPhone;
     private String createPerson;
     private Date createDate;
+
 }
