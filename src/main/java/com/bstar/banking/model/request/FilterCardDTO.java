@@ -14,6 +14,7 @@ import javax.validation.constraints.Pattern;
 public class FilterCardDTO {
     @Pattern(regexp = "^[0-9]+$", message = "the value must be positive integer")
     private String cardNumber;
+    private Boolean isActivated;
     private String createPerson;
     private String updatePerson;
     private String sortField;

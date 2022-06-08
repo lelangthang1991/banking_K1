@@ -15,7 +15,6 @@ import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.SessionRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.security.UserDetailsServiceImpl;
-import com.bstar.banking.service.AbstractCommonService;
 import com.bstar.banking.service.MailerService;
 import com.bstar.banking.service.UserService;
 import com.bstar.banking.utils.DeviceType;
@@ -28,6 +27,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,17 +43,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.bstar.banking.common.CardString.GET_LIST_CARD_SUCCESS;
-import static com.bstar.banking.common.JwtString.GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS;
-import static com.bstar.banking.common.JwtString.REFRESH_TOKEN_NOT_FOUND;
-import static com.bstar.banking.common.StatusCodeString.*;
+import static com.bstar.banking.common.ExceptionString.INVALID_CREDENTIAL;
+import static com.bstar.banking.common.ExceptionString.USER_DISABLED;
+import static com.bstar.banking.common.JwtString.*;
+import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
+import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.*;
 import static java.util.Objects.nonNull;
 
 
 @Transactional
 @Service
-public class UserServiceImpl extends AbstractCommonService implements UserService {
+public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
     private final JwtUtil jwtUtil;
@@ -64,9 +66,21 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
     private final HttpServletRequest request;
     @Autowired
     MailerService mailerService;
+    private final AuthenticationManager authenticationManager;
 
-    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, JavaMailSender sender, AuthenticationManager authenticationManager, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder, ModelMapper modelMapper, DeviceType deviceType, HttpServletRequest request) {
-        super(sender, authenticationManager);
+
+    public void authenticate(String email, String password) throws Exception {
+        try {
+            Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        } catch (DisabledException e) {
+            throw new Exception(USER_DISABLED, e);
+        } catch (BadCredentialsException e) {
+            throw new Exception(INVALID_CREDENTIAL, e);
+        }
+    }
+
+    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, JavaMailSender sender, AuthenticationManager authenticationManager, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder, ModelMapper modelMapper, DeviceType deviceType, HttpServletRequest request, AuthenticationManager authenticationManager1) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
@@ -75,6 +89,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         this.modelMapper = modelMapper;
         this.deviceType = deviceType;
         this.request = request;
+        this.authenticationManager = authenticationManager1;
     }
 
     @Override
@@ -107,21 +122,22 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         session.setUser(user);
         sessionRepository.save(session);
         LoginResponse data = new LoginResponse(token, tokenExpireMillis, refreshToken, refreshTokenExpireMillis);
-        return new RestResponse<>(OK, GENERATE_TOKEN_AND_REFRESH_TOKEN_SUCCESS, data);
+        return new RestResponse<>(OK, LOGIN_SUCCESS, data);
     }
 
 
     @Override
     public RestResponse<?> forgotPassWord(ForgotPasswordDTO forgotPasswordDTO) {
         User user = userRepository.findById(forgotPasswordDTO.getEmail()).orElseThrow(() -> new NotFoundException("404", GET_USER_EMAIL_NOT_FOUND));
-        if (user.getVerifyCode().equals(forgotPasswordDTO.getVerifyCode())) {
-            user.setVerifyCode("");
-            user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getNewPassword()));
-            userRepository.save(user);
-            return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
-        } else {
-            return new RestResponse<>(UNAUTHORIZED, VERIFY_PASSWORD_DOES_NOT_MATCH);
+        if (!user.getVerifyCode().equals(forgotPasswordDTO.getVerifyCode())) {
+            throw new CompareException(VERIFY_CODE_DOES_NOT_MATCH);
+        } else if (forgotPasswordDTO.getNewPassword().equals(user.getPassword())) {
+            throw new CompareException(NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
         }
+        user.setVerifyCode("");
+        user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getNewPassword()));
+        userRepository.save(user);
+        return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
     }
 
     @Override
@@ -204,11 +220,14 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
             throw new CompareException(CONFIRM_PASSWORD_DOES_NOT_MATCH);
         }
         User user = userRepository.findById(authentication.getName()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
-        if (user.getPassword().equals(changePasswordDTO.getPassword())) {
-            throw new NotFoundException(PASSWORD_DOES_NOT_MATCH);
+        if (!passwordEncoder.matches(changePasswordDTO.getPassword(), user.getPassword())) {
+            throw new CompareException(PASSWORD_DOES_NOT_MATCH);
+        } else if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())) {
+            throw new CompareException(NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
+        } else {
+            user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+            return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
         }
-        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
-        return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
     }
 
     @Override
@@ -272,7 +291,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
             List<UserDTO> cardDTOS = cards.stream()
                     .map(acc -> modelMapper.map(acc, UserDTO.class))
                     .collect(Collectors.toList());
-            return new RestResponse<>(OK, GET_LIST_CARD_SUCCESS, new ResponsePageCard(
+            return new RestResponse<>(OK, GET_PAGE_USER_SUCCESS, new ResponsePageCard(
                     cards.getNumber(),
                     cards.getSize(),
                     cards.getTotalPages(),
@@ -286,7 +305,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
             List<UserDTO> cardDTOS = cards.stream()
                     .map(acc -> modelMapper.map(acc, UserDTO.class))
                     .collect(Collectors.toList());
-            return new RestResponse<>(OK, GET_LIST_CARD_SUCCESS, new ResponsePageCard(
+            return new RestResponse<>(OK, GET_PAGE_USER_SUCCESS, new ResponsePageCard(
                     cards.getNumber(),
                     cards.getSize(),
                     cards.getTotalPages(),
@@ -337,13 +356,9 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String emailAdmin = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
-        if (user.getPassword().equals(userDTO.getPassword())) {
-            throw new CompareException(NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
-        }
         if (userRepository.findByPhone(userDTO.getPhone()).isPresent()) {
             throw new CompareException(NEW_PHONE_NUMBER_ALREADY_EXISTS);
         }
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
         user.setAddress(userDTO.getAddress());
@@ -374,5 +389,16 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
         user.setUpdateDate(new Date());
         userRepository.save(user);
         return new RestResponse<>(OK, USER_DECENTRALIZATION_SUCCESS);
+    }
+
+    @Override
+    public RestResponse<?> findAllCardUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+        List<CardDTO> cardDTOS = user.getCards().stream()
+                .map(ca -> modelMapper.map(ca, CardDTO.class))
+                .collect(Collectors.toList());
+        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, cardDTOS);
     }
 }

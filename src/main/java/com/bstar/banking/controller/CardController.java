@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping("/api/v1/cards")
@@ -52,5 +53,10 @@ public class CardController {
     public ResponseEntity<RestResponse<?>> bankRegister(@Valid @RequestBody RegisterBankCardRq registerBankCardRq,
                                                         Authentication authentication) {
         return ResponseEntity.ok(cardService.cardRegister(registerBankCardRq, authentication));
+    }
+
+    @GetMapping("/check-card-info/{cardNumberBeneficiary}")
+    public ResponseEntity<RestResponse<?>> checkCardNumber(@Valid @NotBlank @PathVariable("cardNumberBeneficiary") String cardNumberBeneficiary) {
+        return ResponseEntity.ok(cardService.checkCardNumber(cardNumberBeneficiary));
     }
 }

@@ -30,22 +30,12 @@ public class UserController {
 
     @PostMapping("/send-mail")
     public ResponseEntity<RestResponse<?>> sendMail(@RequestBody @Valid EmailRequest mailer) throws MessagingException {
-        RestResponse<?> response = mailerService.sendVerifyCode(mailer.getEmail());
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        return ResponseEntity.ok(mailerService.sendVerifyCode(mailer.getEmail()));
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<RestResponse<?>> forgotPassword(@Valid @RequestBody ForgotPasswordDTO forgotDTO) {
-        RestResponse<?> response = userService.forgotPassWord(forgotDTO);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        return ResponseEntity.ok(userService.forgotPassWord(forgotDTO));
     }
 
     @GetMapping("/refresh-token")
@@ -98,4 +88,10 @@ public class UserController {
     public ResponseEntity<RestResponse<?>> logout() {
         return ResponseEntity.ok(userService.logout());
     }
+
+    @GetMapping("/get-card-user")
+    public ResponseEntity<RestResponse<?>> findAllCardUser() {
+        return ResponseEntity.ok(userService.findAllCardUser());
+    }
+
 }

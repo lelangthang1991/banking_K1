@@ -112,8 +112,7 @@ public class MailerServiceImpl implements MailerService {
             return new RestResponse<>(OK, SEND_MAIL_SUCCESS, new ForgotPasswordResponse(user.getEmail()));
         } catch (Exception e) {
             e.printStackTrace();
-            RestResponse<ForgotPasswordResponse> CommonResponse = new RestResponse<>();
-            return new RestResponse<>(BAD_REQUEST, "INVALID_EMAIL");
+            throw new NotFoundException(BAD_REQUEST, "INVALID_EMAIL");
         }
     }
 }

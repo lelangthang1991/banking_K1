@@ -1,8 +1,8 @@
 package com.bstar.banking.common;
 
 public class CardString {
-    public final static String GET_LIST_CARD_SUCCESS = "Get card list success";
-    public final static String GET_LIST_CARD_FAILURE = "Get card list failure";
+    public final static String GET_PAGE_CARD_SUCCESS = "Get card page success";
+    public final static String GET_PAGE_CARD_FAILURE = "Get card page failure";
 
     public final static String GET_CARD_SUCCESS = "Get card success";
     public final static String GET_CARD_FAILURE = "Get card failure";
