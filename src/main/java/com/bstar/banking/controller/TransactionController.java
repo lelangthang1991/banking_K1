@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.text.ParseException;
 
 @PreAuthorize("hasAuthority('1')")
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class TransactionController {
     }
 
     @PostMapping("/transfer-money")
-    public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
+    public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication)  {
         return ResponseEntity.ok(transactionService.transferMoney(transferMoneyDTO, authentication));
     }
 
@@ -46,6 +47,10 @@ public class TransactionController {
     @GetMapping("/list-all-transaction")
     public RestResponse<ResponsePageCard> listAllTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
         return transactionService.listAllTransactionByCard(page, authentication);
+    }
+    @GetMapping("/list-transaction")
+    public RestResponse<ResponsePageCard> listTransaction2(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
+        return transactionService.listTransaction(page, authentication);
     }
 
 

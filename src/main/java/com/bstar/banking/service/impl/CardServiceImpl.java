@@ -1,8 +1,9 @@
 package com.bstar.banking.service.impl;
 
-import com.bstar.banking.common.RandomBankNumber;
+import com.bstar.banking.common.RandomCardNumber;
 import com.bstar.banking.entity.Card;
 import com.bstar.banking.entity.User;
+import com.bstar.banking.exception.BusinessException;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.exception.PinCodeException;
 import com.bstar.banking.model.request.*;
@@ -29,8 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.bstar.banking.common.CardString.*;
-import static com.bstar.banking.common.StatusCodeString.NOT_FOUND;
-import static com.bstar.banking.common.StatusCodeString.OK;
+import static com.bstar.banking.common.StatusCodeString.*;
 import static com.bstar.banking.common.UserString.*;
 
 @Transactional
@@ -204,17 +204,21 @@ public class CardServiceImpl implements CardService {
         return new RestResponse<>(OK, CARD_DISABLED_SUCCESS);
     }
 
-    public RestResponse<?> bankRegister(@Valid @RequestBody RegisterBankCardRq registerDTO,
+    public RestResponse<?> cardRegister( RegisterBankCardRq registerDTO,
                                         Authentication authentication) {
         if (!registerDTO.getPinCode().equals(registerDTO.getConfirmPinCode())) {
             return new RestResponse<>(NOT_FOUND, PINCODE_DOES_NOT_MATCH);
         }
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+
+        if(!(user.getCards().size()<5)){
+            return  new RestResponse<>(FORBIDDEN,THE_NUMBER_OF_CARDS_ALLOWED_IS_EXCEEDED);
+        }
         Card card = new Card();
-        RandomBankNumber randomBankNumber = new RandomBankNumber();
-        card.setCardType(registerDTO.getCardType());
-        card.setCardNumber(randomBankNumber.randomBankNumber());
+        RandomCardNumber randomCardNumber = new RandomCardNumber();
+        card.setCardType(1);
+        card.setCardNumber("1001"+randomCardNumber.randomCardNumber());
         card.setBalance((double) 0);
         card.setPinCode(registerDTO.getPinCode());
         card.setIsActivated(true);
@@ -222,6 +226,9 @@ public class CardServiceImpl implements CardService {
         card.setCreatePerson(email);
         card.setUpdateDate(new Date());
         card.setUpdatePerson(email);
+        card.setLevel(1);
+        card.setDailyLimitAmount((double)100000000);
+        card.setMonthlyLimitAmount((double)500000000);
         card.setUser(user);
         cardRepository.save(card);
         return new RestResponse<>(OK,
@@ -238,9 +245,9 @@ public class CardServiceImpl implements CardService {
         String email = authentication.getName();
         User user = userRepository.findById(registerDTO.getEmail()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         Card card = new Card();
-        RandomBankNumber randomBankNumber = new RandomBankNumber();
+        RandomCardNumber randomCardNumber = new RandomCardNumber();
         card.setCardType(registerDTO.getCardType());
-        card.setCardNumber(randomBankNumber.randomBankNumber());
+        card.setCardNumber(randomCardNumber.randomCardNumber());
         card.setBalance((double) 0);
         card.setPinCode(registerDTO.getPinCode());
         card.setIsActivated(true);

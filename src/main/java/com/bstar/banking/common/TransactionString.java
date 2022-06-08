@@ -14,6 +14,9 @@ public class TransactionString {
     public static final String GET_LIST_SUCCESSFULLY = "Get list successfully";
     public static final String GET_LIST_FAIL = "Get list fail";
     public static final String TRANSACTION_LIST_NOT_FOUND = "Transaction list not found";
+    public static final String CAN_NOT_TRANSFER_MONEY_TO_THE_SAME_CARD = "Cannot transfer money to the same card";
+    public static final String THE_MONTHLY_TRANSFER_EXCEEDED = "The monthly transfer limit is exceeded";
+    public static final String THE_DAILY_TRANSFER_EXCEEDED_TRY_AGAIN_THE_NEXT_DAY = "The daily transfer limit is exceeded, try again the next day";
 
 
 }

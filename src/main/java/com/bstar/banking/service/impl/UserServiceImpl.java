@@ -154,6 +154,7 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
                 user.setUpdatePerson(signupRequest.getEmail());
                 user.setVerifyCode(verifyCode);
                 userRepository.save(user);
+
                 mailerService.sendWelcome(user, verifyCode);
                 return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
             } catch (Exception e) {
@@ -192,7 +193,8 @@ public class UserServiceImpl extends AbstractCommonService implements UserServic
 
     @Override
     public RestResponse<?> infoUser(Authentication authentication) {
-        User user = userRepository.getUserByEmail(authentication.getName()).orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
+        User user = userRepository.getUserByEmail(authentication.getName()).orElseThrow(() ->
+                                                    new BusinessException(USER_NOT_FOUND));
         return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
     }
 

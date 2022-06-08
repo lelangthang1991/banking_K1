@@ -22,3 +22,5 @@ public class CardResponse {
     private Double dailyLimitAmount;
     private Double monthlyLimitAmount;
 }
+
+

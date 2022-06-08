@@ -11,7 +11,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class WithdrawDepositResponse {
 
-    private Integer transactionId;
+    private String transactionId;
     private Double amount;
     private Double balance;
     private Integer transactionType;
