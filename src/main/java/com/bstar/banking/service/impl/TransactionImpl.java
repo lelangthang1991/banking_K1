@@ -104,9 +104,9 @@ public class TransactionImpl implements TransactionService {
                 .filter(us -> us.getCardNumber().equals(withdrawMoneyDTO.getCardNumber()))
                 .findFirst();
         Card getCard = card.get();
-        double fee = 0;
+        Double fee = 0.0;
         if (getCard.getLevel().equals(1)) {
-            fee = 1000;
+            fee = 1000.0;
         }
         if (!getCard.getCardNumber().equals(withdrawMoneyDTO.getCardNumber())) {
             throw new CompareException(CARD_NUMBER_NOT_FOUND);
@@ -186,7 +186,7 @@ public class TransactionImpl implements TransactionService {
             throw new CompareException(PINCODE_DOES_NOT_MATCH);
         }
 
-        if (transferMoneyDTO.getAmount() + fee > cardTransfer.getBalance()) {
+        if (transferMoneyDTO.getAmount() + fee > cardTransfer.getBalance() && transferMoneyDTO.getAmount()+fee >cardTransfer.getDailyAvailableTransfer()) {
             throw new CompareException(BALANCE_IS_NOT_ENOUGH);
         }
         if (monthlyLimit > cardTransfer.getMonthlyLimitAmount()) {
