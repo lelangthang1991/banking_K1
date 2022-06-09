@@ -15,14 +15,8 @@ public interface TransactionService {
 
     RestResponse<?> transferMoney(TransactionDTO transferMoneyDTO, Authentication authentication);
 
-    RestResponse<ResponsePageCard> listTransactionByCardAndType(FilterTransactionDTO listTransactionDTO,
-                                                                Authentication authentication);
-
-    RestResponse<ResponsePageCard> listAllTransactionByCard(FilterTransactionDTO listTransactionPagingRequest,
-                                                            Authentication authentication);
-
-    RestResponse<ResponsePageCard> listTransaction(FilterTransactionDTO filterTransactionDTO,
+    RestResponse<ResponsePageCard> listTransaction(FilterTransactionDTO listTransactionByDatePagingRequest,
                                                    Authentication authentication);
-
     RestResponse<ResponsePageCard> listAdminTransaction(FilterTransactionDTO filterTransactionDTO);
+
 }

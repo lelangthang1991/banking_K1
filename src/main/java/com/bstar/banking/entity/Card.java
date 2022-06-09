@@ -28,6 +28,8 @@ public class Card {
     private Integer level;
     private Double dailyLimitAmount;
     private Double monthlyLimitAmount;
+    private Double dailyAvailableTransfer;
+    private Double monthlyAvailableTransfer;
 
     @ManyToOne
     @JoinColumn(name = "user_email")

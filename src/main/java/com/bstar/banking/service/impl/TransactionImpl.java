@@ -3,7 +3,6 @@ package com.bstar.banking.service.impl;
 import com.bstar.banking.entity.Card;
 import com.bstar.banking.entity.Transaction;
 import com.bstar.banking.entity.User;
-import com.bstar.banking.exception.BusinessException;
 import com.bstar.banking.exception.CompareException;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.DepositMoneyDTO;
@@ -60,7 +59,7 @@ public class TransactionImpl implements TransactionService {
                 .findFirst();
         Card getCard = card.get();
         if (depositMoneyDTO.getAmount() < 50000) {
-            throw new BusinessException(DEPOSIT_AMOUNT_NOT_ENOUGH);
+            throw new CompareException(DEPOSIT_AMOUNT_NOT_ENOUGH);
         }
         if (!getCard.getCardNumber().equals(depositMoneyDTO.getCardNumber())) {
             throw new CompareException(CARD_NUMBER_NOT_FOUND);
@@ -105,9 +104,9 @@ public class TransactionImpl implements TransactionService {
                 .filter(us -> us.getCardNumber().equals(withdrawMoneyDTO.getCardNumber()))
                 .findFirst();
         Card getCard = card.get();
-        double fee = 0;
+        Double fee = 0.0;
         if (getCard.getLevel().equals(1)) {
-            fee = 1000;
+            fee = 1000.0;
         }
         if (!getCard.getCardNumber().equals(withdrawMoneyDTO.getCardNumber())) {
             throw new CompareException(CARD_NUMBER_NOT_FOUND);
@@ -126,9 +125,9 @@ public class TransactionImpl implements TransactionService {
         }
         Transaction transaction = new Transaction();
         transaction.setFee(fee);
-        getCard.setBalance(getCard.getBalance() - withdrawMoneyDTO.getAmount() - transaction.getFee());
+        getCard.setBalance(getCard.getBalance() - withdrawMoneyDTO.getAmount() - fee);
         cardRepository.save(getCard);
-        transaction.setAmount(withdrawMoneyDTO.getAmount());
+        transaction.setAmount(withdrawMoneyDTO.getAmount() + fee);
         transaction.setUnitCurrency("VND");
         transaction.setStatus(true);
         transaction.setTransactionType(2);
@@ -163,19 +162,12 @@ public class TransactionImpl implements TransactionService {
                 orElseThrow(() -> new NotFoundException(CARD_NUMBER_NOT_FOUND));
 
         Date currentDate = new Date();
-        Double dailyLimit = transactionRepository.dailyLimit(cardTransfer.getCardNumber(), email, 3, new Date());
         Double monthlyLimit = transactionRepository.monthlyLimit(cardTransfer.getCardNumber(),
                 email, 3, currentDate.getMonth() + 1, currentDate.getYear() + 1900);
-        if (dailyLimit == null) {
-            dailyLimit = 0.0;
-        }
-        if (monthlyLimit == null) {
-            monthlyLimit = 0.0;
-        }
 
-        double fee = 0;
+        Double fee = 0.0;
         if (cardTransfer.getLevel().equals(1)) {
-            fee = 1000;
+            fee = 1000.0;
         }
         if (transferMoneyDTO.getAmount() < 50000) {
             throw new CompareException(TRANSFER_AMOUNT_NOT_ENOUGH);
@@ -194,14 +186,17 @@ public class TransactionImpl implements TransactionService {
             throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
 
-        if (transferMoneyDTO.getAmount() + fee > cardTransfer.getBalance()) {
+        if (transferMoneyDTO.getAmount() + fee > cardTransfer.getBalance() && transferMoneyDTO.getAmount() + fee > cardTransfer.getDailyAvailableTransfer()) {
             throw new CompareException(BALANCE_IS_NOT_ENOUGH);
         }
         if (monthlyLimit > cardTransfer.getMonthlyLimitAmount()) {
             throw new CompareException(THE_MONTHLY_TRANSFER_EXCEEDED);
-        } else if (dailyLimit > cardTransfer.getDailyLimitAmount()) {
+        } else if ((transferMoneyDTO.getAmount() + fee) > (cardTransfer.getMonthlyLimitAmount() - monthlyLimit)) {
+            throw new CompareException(THE_MONTHLY_TRANSFER_EXCEEDED);
+        } else if ((transferMoneyDTO.getAmount() + fee) > cardTransfer.getDailyAvailableTransfer()) {
             throw new CompareException(THE_DAILY_TRANSFER_EXCEEDED_TRY_AGAIN_THE_NEXT_DAY);
         }
+
         //transfer transaction
         cardTransfer.setBalance(cardTransfer.getBalance() - transferMoneyDTO.getAmount() - fee);
         cardRepository.save(cardTransfer);
@@ -221,6 +216,10 @@ public class TransactionImpl implements TransactionService {
         transactionTransfer.setBody(transferMoneyDTO.getBody());
         transactionTransfer.setBalance(cardTransfer.getBalance());
         transactionRepository.save(transactionTransfer);
+
+        cardTransfer.setMonthlyAvailableTransfer(cardTransfer.getMonthlyAvailableTransfer() - (transferMoneyDTO.getAmount() + fee));
+        cardTransfer.setDailyAvailableTransfer(cardTransfer.getDailyAvailableTransfer() - (transferMoneyDTO.getAmount() + fee));
+        cardRepository.save(cardTransfer);
         //receive Transaction
         cardBeneficial.setBalance(cardBeneficial.getBalance() + transferMoneyDTO.getAmount());
         cardRepository.save(cardBeneficial);
@@ -254,100 +253,6 @@ public class TransactionImpl implements TransactionService {
                 transactionDTO);
     }
 
-    @Override
-    public RestResponse<ResponsePageCard> listTransactionByCardAndType(FilterTransactionDTO lDate, Authentication authentication) {
-        if (StringUtils.isBlank(lDate.getSortField()) || StringUtils.isBlank(lDate.getSortDir())) {
-            Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize());
-            String email = authentication.getName();
-            User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listTransactionByCardAndType(lDate.getTransactionType(),
-                    lDate.getCardNumber(),
-                    user.getEmail(),
-                    lDate.getStartDate(),
-                    lDate.getEndDate(),
-                    page);
-            List<TransactionDTO> listDTO = listPage.getContent()
-                    .parallelStream()
-                    .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
-                    .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
-                    listPage.getSize(),
-                    listPage.getTotalPages(),
-                    listPage.getTotalElements(),
-                    listDTO));
-        } else {
-            Sort sort = Sort.by(lDate.getSortField());
-            sort = lDate.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
-            Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize(), sort);
-            String email = authentication.getName();
-            User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listTransactionByCardAndType(lDate.getTransactionType(),
-                    lDate.getCardNumber(),
-                    user.getEmail(),
-                    lDate.getStartDate(),
-                    lDate.getEndDate(),
-                    page);
-            List<TransactionDTO> listDTO = listPage.getContent()
-                    .parallelStream()
-                    .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
-                    .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
-                    listPage.getSize(),
-                    listPage.getTotalPages(),
-                    listPage.getTotalElements(),
-                    listDTO));
-        }
-    }
-
-    @Override
-    public RestResponse<ResponsePageCard> listAllTransactionByCard(FilterTransactionDTO lDate,
-                                                                   Authentication authentication) {
-
-        if (StringUtils.isBlank(lDate.getSortField()) || StringUtils.isBlank(lDate.getSortDir())) {
-            Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize());
-            String email = authentication.getName();
-            User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listAllTransactionByCard(lDate.getCardNumber(),
-                    user.getEmail(),
-                    lDate.getStartDate(),
-                    lDate.getEndDate(),
-                    page);
-            List<TransactionDTO> listDTO = listPage.getContent()
-                    .parallelStream()
-                    .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
-                    .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
-                    listPage.getSize(),
-                    listPage.getTotalPages(),
-                    listPage.getTotalElements(),
-                    listDTO));
-        } else {
-            Sort sort = Sort.by(lDate.getSortField());
-            sort = lDate.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
-            Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize(), sort);
-            String email = authentication.getName();
-            User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listAllTransactionByCard(lDate.getCardNumber(),
-                    user.getEmail(),
-                    lDate.getStartDate(),
-                    lDate.getEndDate(),
-                    page);
-            List<TransactionDTO> listDTO = listPage.getContent()
-                    .parallelStream()
-                    .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
-                    .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
-                    listPage.getSize(),
-                    listPage.getTotalPages(),
-                    listPage.getTotalElements(),
-                    listDTO));
-        }
-    }
-
 
     @Override
     public RestResponse<ResponsePageCard> listTransaction(FilterTransactionDTO lDate,
@@ -357,12 +262,7 @@ public class TransactionImpl implements TransactionService {
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize());
             String email = authentication.getName();
             User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listTransaction(lDate.getCardNumber(),
-                    user.getEmail(),
-                    lDate.getTransactionType(),
-                    lDate.getStartDate(),
-                    lDate.getEndDate(),
-                    page);
+            Page<Transaction> listPage = transactionRepository.listTransaction(lDate, page);
             List<TransactionDTO> listDTO = listPage.getContent()
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
@@ -379,12 +279,7 @@ public class TransactionImpl implements TransactionService {
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize(), sort);
             String email = authentication.getName();
             User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
-            Page<Transaction> listPage = transactionRepository.listTransaction(lDate.getCardNumber(),
-                    user.getEmail(),
-                    lDate.getTransactionType(),
-                    lDate.getStartDate(),
-                    lDate.getEndDate(),
-                    page);
+            Page<Transaction> listPage = transactionRepository.listTransaction(lDate, page);
             List<TransactionDTO> listDTO = listPage.getContent()
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))

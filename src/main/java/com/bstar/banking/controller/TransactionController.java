@@ -33,20 +33,10 @@ public class TransactionController {
     }
 
     @PostMapping("/transfer-money")
-    public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication)  {
+    public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
         return ResponseEntity.ok(transactionService.transferMoney(transferMoneyDTO, authentication));
     }
 
-
-    @GetMapping("/list-transaction-by-type")
-    public RestResponse<ResponsePageCard> listTransaction(@Valid FilterTransactionDTO page, Authentication authentication) {
-        return transactionService.listTransactionByCardAndType(page, authentication);
-    }
-
-    @GetMapping("/list-all-transaction")
-    public RestResponse<ResponsePageCard> listAllTransaction(@Valid FilterTransactionDTO page, Authentication authentication) {
-        return transactionService.listAllTransactionByCard(page, authentication);
-    }
     @GetMapping("/list-transaction")
     public RestResponse<ResponsePageCard> listTransaction2(@Valid FilterTransactionDTO page, Authentication authentication) {
         return transactionService.listTransaction(page, authentication);

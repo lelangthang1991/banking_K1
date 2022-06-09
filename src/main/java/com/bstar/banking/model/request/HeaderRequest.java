@@ -14,7 +14,6 @@ import static com.bstar.banking.utils.Utils.convertDateToString;
 public class HeaderRequest {
     private UUID requestUID;
     private String date;
-
     public HeaderRequest() {
         this.requestUID = UUID.randomUUID();
         this.date = convertDateToString(Date.from(Instant.now()), YYMMDDMMSSSSS);

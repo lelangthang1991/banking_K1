@@ -10,7 +10,6 @@ import javax.validation.Valid;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommonRequest<T> {
-
     private HeaderRequest header;
     @Valid
     private T body;

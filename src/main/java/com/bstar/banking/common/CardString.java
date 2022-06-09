@@ -3,14 +3,11 @@ package com.bstar.banking.common;
 public class CardString {
     public final static String GET_PAGE_CARD_SUCCESS = "Get card page success";
     public final static String GET_PAGE_CARD_FAILURE = "Get card page failure";
-
     public final static String GET_CARD_SUCCESS = "Get card success";
     public final static String GET_CARD_FAILURE = "Get card failure";
     public final static String CARD_UPDATE_SUCCESS = "Card update success";
     public final static String CARD_UPDATE_FAILURE = "Card update failure";
-
     public final static String CARD_DISABLED_SUCCESS = "Card disabled success";
-
     public final static String CARD_NUMBER_NOT_FOUND = "Card number not found";
     public final static String CARD_NOT_FOUND = "Card not found";
     public final static String CARD_PIN_CODE_MATCH = "Card pin code match";
@@ -24,8 +21,4 @@ public class CardString {
     public final static String DEPOSIT_AMOUNT_NOT_ENOUGH = "Deposit amount is not enough 50000 VND";
     public final static String WITHDRAW_AMOUNT_NOT_ENOUGH = "Withdraw amount is not enough 50000 VND";
     public final static String TRANSFER_AMOUNT_NOT_ENOUGH = "Transfer amount is not enough 50000 VND";
-
-
-
-
 }
