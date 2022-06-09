@@ -7,7 +7,7 @@ import com.bstar.banking.exception.BusinessException;
 import com.bstar.banking.exception.CompareException;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.model.request.DepositMoneyDTO;
-import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
+import com.bstar.banking.model.request.FilterTransactionDTO;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
@@ -35,7 +35,7 @@ import static com.bstar.banking.common.CardString.*;
 import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.TransactionString.*;
 import static com.bstar.banking.common.UserString.GET_USER_EMAIL_NOT_FOUND;
-import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
+import static com.bstar.banking.common.UserString.PIN_CODE_DOES_NOT_MATCH;
 
 @Transactional
 @Service
@@ -69,7 +69,7 @@ public class TransactionImpl implements TransactionService {
             throw new CompareException(CARD_NOT_ACTIVATED);
         }
         if (!depositMoneyDTO.getPinCode().equals(getCard.getPinCode())) {
-            throw new CompareException(PINCODE_DOES_NOT_MATCH);
+            throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
         getCard.setBalance(getCard.getBalance() + depositMoneyDTO.getAmount());
         cardRepository.save(getCard);
@@ -119,7 +119,7 @@ public class TransactionImpl implements TransactionService {
             throw new CompareException(CARD_NOT_ACTIVATED);
         }
         if (!withdrawMoneyDTO.getPinCode().equals(getCard.getPinCode())) {
-            throw new CompareException(PINCODE_DOES_NOT_MATCH);
+            throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
         if (withdrawMoneyDTO.getAmount() + fee > getCard.getBalance()) {
             throw new CompareException(BALANCE_IS_NOT_ENOUGH);
@@ -191,7 +191,7 @@ public class TransactionImpl implements TransactionService {
             throw new CompareException(BENEFICIAL_CARD_NOT_ACTIVATED);
         }
         if (!transferMoneyDTO.getPinCode().equals(cardTransfer.getPinCode())) {
-            throw new CompareException(PINCODE_DOES_NOT_MATCH);
+            throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
 
         if (transferMoneyDTO.getAmount() + fee > cardTransfer.getBalance()) {
@@ -255,7 +255,7 @@ public class TransactionImpl implements TransactionService {
     }
 
     @Override
-    public RestResponse<ResponsePageCard> listTransactionByCardAndType(ListTransactionByDatePagingRequest lDate, Authentication authentication) {
+    public RestResponse<ResponsePageCard> listTransactionByCardAndType(FilterTransactionDTO lDate, Authentication authentication) {
         if (StringUtils.isBlank(lDate.getSortField()) || StringUtils.isBlank(lDate.getSortDir())) {
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize());
             String email = authentication.getName();
@@ -271,7 +271,7 @@ public class TransactionImpl implements TransactionService {
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
             listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),
@@ -293,7 +293,7 @@ public class TransactionImpl implements TransactionService {
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
             listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),
@@ -302,7 +302,7 @@ public class TransactionImpl implements TransactionService {
     }
 
     @Override
-    public RestResponse<ResponsePageCard> listAllTransactionByCard(ListTransactionByDatePagingRequest lDate,
+    public RestResponse<ResponsePageCard> listAllTransactionByCard(FilterTransactionDTO lDate,
                                                                    Authentication authentication) {
 
         if (StringUtils.isBlank(lDate.getSortField()) || StringUtils.isBlank(lDate.getSortDir())) {
@@ -319,7 +319,7 @@ public class TransactionImpl implements TransactionService {
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
             listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),
@@ -340,7 +340,7 @@ public class TransactionImpl implements TransactionService {
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
             listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),
@@ -350,7 +350,7 @@ public class TransactionImpl implements TransactionService {
 
 
     @Override
-    public RestResponse<ResponsePageCard> listTransaction(ListTransactionByDatePagingRequest lDate,
+    public RestResponse<ResponsePageCard> listTransaction(FilterTransactionDTO lDate,
                                                           Authentication authentication) {
 
         if (StringUtils.isBlank(lDate.getSortField()) || StringUtils.isBlank(lDate.getSortDir())) {
@@ -368,7 +368,7 @@ public class TransactionImpl implements TransactionService {
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
             listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),
@@ -390,7 +390,40 @@ public class TransactionImpl implements TransactionService {
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
             listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
-            return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
+                    listPage.getSize(),
+                    listPage.getTotalPages(),
+                    listPage.getTotalElements(),
+                    listDTO));
+        }
+    }
+
+    @Override
+    public RestResponse<ResponsePageCard> listAdminTransaction(FilterTransactionDTO transaction) {
+        if (StringUtils.isBlank(transaction.getSortField()) || StringUtils.isBlank(transaction.getSortDir())) {
+            Pageable page = PageRequest.of(transaction.getPageNumber(), transaction.getPageSize());
+            Page<Transaction> listPage = transactionRepository.adminListTransaction(transaction, page);
+            List<TransactionDTO> listDTO = listPage.getContent()
+                    .parallelStream()
+                    .map(tran -> modelMapper.map(tran, TransactionDTO.class))
+                    .collect(Collectors.toList());
+            listDTO.forEach(l -> l.setOwnerNumber(transaction.getCardNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
+                    listPage.getSize(),
+                    listPage.getTotalPages(),
+                    listPage.getTotalElements(),
+                    listDTO));
+        } else {
+            Sort sort = Sort.by(transaction.getSortField());
+            sort = transaction.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
+            Pageable page = PageRequest.of(transaction.getPageNumber(), transaction.getPageSize(), sort);
+            Page<Transaction> listPage = transactionRepository.adminListTransaction(transaction, page);
+            List<TransactionDTO> listDTO = listPage.getContent()
+                    .parallelStream()
+                    .map(tran -> modelMapper.map(tran, TransactionDTO.class))
+                    .collect(Collectors.toList());
+            listDTO.forEach(l -> l.setOwnerNumber(transaction.getCardNumber()));
+            return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
                     listPage.getTotalElements(),

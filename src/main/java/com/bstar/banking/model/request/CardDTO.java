@@ -11,10 +11,10 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardDTO {
-    @NotBlank
+    @NotBlank(message = "Card number could not be null or empty")
     private String cardNumber;
     private Double balance;
-    @NotBlank
+    @NotBlank(message = "Pin code could not be null or empty")
     private String pinCode;
     private Integer cardType;
     private Boolean isActivated;

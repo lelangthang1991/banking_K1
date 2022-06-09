@@ -17,8 +17,8 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignupRequest {
-    @Email
-    @NotBlank
+    @NotBlank(message = "Email could not be null or empty")
+    @Email(message = "Invalid email format")
     @Pattern(regexp = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
             + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$", message = "Invalid email format")
     private String email;
@@ -26,15 +26,15 @@ public class SignupRequest {
     private String password;
     @Pattern(regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,20}$", message = "Invalid confirm password format")
     private String confirm;
-    @NotBlank
+    @NotBlank(message = "First name could not be null or empty")
     private String firstName;
-    @NotBlank
+    @NotBlank(message = "Last name could not be null or empty")
     private String lastName;
     private Date dob;
     private Integer gender;
-    @NotBlank
+    @NotBlank(message = "Address could not be null or empty")
     private String address;
-    @Size(min = 10, max = 10, message = "phone must be number 10 characters")
+    @Size(min = 10, max = 10, message = "Phone must be number 10 characters")
     private String phone;
     private Boolean isActivated;
     private String createPerson;

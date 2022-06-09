@@ -12,9 +12,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginDTO implements Serializable {
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email could not be null or empty")
+    @Email(message = "Invalid email format")
     private String email;
-    @NotBlank
+    @NotBlank(message = "Password could not be null or empty")
     private String password;
 }

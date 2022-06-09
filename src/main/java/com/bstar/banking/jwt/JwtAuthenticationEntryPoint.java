@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.bstar.banking.common.JwtString.INCORRECT_EMAIL_OR_PASSWORD;
 import static com.bstar.banking.common.StatusCodeString.UNAUTHORIZED;
 import static com.bstar.banking.utils.Utils.FULL_DATE_FORMAT;
 import static com.bstar.banking.utils.Utils.convertDateToString;
@@ -29,7 +30,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType("application/json");
         Map<String, Object> data = new HashMap<>();
         data.put("statusCode", UNAUTHORIZED);
-        data.put("statusDescription", "Invalid email or password");
+        data.put("statusDescription", INCORRECT_EMAIL_OR_PASSWORD);
         data.put("timestamp", convertDateToString(Date.from(Instant.now()), FULL_DATE_FORMAT));
         data.put("uuid", UUID.randomUUID());
         OutputStream out = response.getOutputStream();

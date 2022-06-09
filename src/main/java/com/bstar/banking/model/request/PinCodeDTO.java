@@ -10,8 +10,8 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PinCodeDTO {
-    @NotBlank
+    @NotBlank(message = "Card number could not be null or empty")
     private String cardNumber;
-    @NotBlank
+    @NotBlank(message = "Pin code could not be null or empty")
     private String pinCode;
 }

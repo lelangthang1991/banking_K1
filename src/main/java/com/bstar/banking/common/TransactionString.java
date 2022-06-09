@@ -11,8 +11,8 @@ public class TransactionString {
     public static final String BALANCE_IS_NOT_ENOUGH = "Balance is not enough";
     public static final String CARD_NOT_ACTIVATED = "Card has not been activated";
     public static final String BENEFICIAL_CARD_NOT_ACTIVATED = "Beneficial Card has not been activated";
-    public static final String GET_LIST_SUCCESSFULLY = "Get list successfully";
-    public static final String GET_LIST_FAIL = "Get list fail";
+    public static final String GET_LIST_SUCCESSFUL = "Get list successful";
+    public static final String GET_LIST_FAILURE = "Get list failure";
     public static final String TRANSACTION_LIST_NOT_FOUND = "Transaction list not found";
     public static final String CAN_NOT_TRANSFER_MONEY_TO_THE_SAME_CARD = "Cannot transfer money to the same card";
     public static final String THE_MONTHLY_TRANSFER_EXCEEDED = "The monthly transfer limit is exceeded";

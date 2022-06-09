@@ -12,12 +12,12 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class DepositMoneyDTO {
 
-    @NotBlank
+    @NotBlank(message = "Card number could not be null or empty")
     @Size(min = 13, max = 20)
     private String cardNumber;
     @Min(value = 50000)
     private Double amount;
-    @NotBlank
+    @NotBlank(message = "Pin code could not be null or empty")
     @Size(max = 4)
     private String pinCode;
 }

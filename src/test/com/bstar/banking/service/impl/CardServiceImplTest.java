@@ -31,7 +31,7 @@ import java.util.Optional;
 import static com.bstar.banking.common.CardString.*;
 import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.GET_USER_INFO_SUCCESS;
-import static com.bstar.banking.common.UserString.PINCODE_DOES_NOT_MATCH;
+import static com.bstar.banking.common.UserString.PIN_CODE_DOES_NOT_MATCH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -300,7 +300,7 @@ class CardServiceImplTest {
         Card card5 = new Card();
         User user = new User();
         user.setEmail("hoanganh25213@gmail.com");
-        user.setCards(List.of(card,card1,card2,card3,card4,card5));
+        user.setCards(List.of(card, card1, card2, card3, card4, card5));
 
         //when
         when(userRepository.findById(Mockito.any())).thenReturn(Optional.of(user));
@@ -322,7 +322,7 @@ class CardServiceImplTest {
         //then
         Throwable exception = assertThrows(CompareException.class,
                 () -> cardService.cardRegister(registerDTO, Mockito.mock(Authentication.class)));
-        assertEquals(PINCODE_DOES_NOT_MATCH, exception.getMessage());
+        assertEquals(PIN_CODE_DOES_NOT_MATCH, exception.getMessage());
     }
 
     @Test
@@ -371,7 +371,7 @@ class CardServiceImplTest {
         //then
         Throwable exception = assertThrows(PinCodeException.class,
                 () -> cardService.changePinCode(changePinCodeDTO, Mockito.mock(Authentication.class)));
-        assertEquals(PINCODE_DOES_NOT_MATCH, exception.getMessage());
+        assertEquals(PIN_CODE_DOES_NOT_MATCH, exception.getMessage());
     }
 
     @Test
@@ -485,7 +485,7 @@ class CardServiceImplTest {
         //then
         Throwable exception = assertThrows(CompareException.class,
                 () -> cardService.adminBankRegister(registerDTO, mock(Authentication.class)));
-        assertEquals(PINCODE_DOES_NOT_MATCH, exception.getMessage());
+        assertEquals(PIN_CODE_DOES_NOT_MATCH, exception.getMessage());
     }
 
     @Test

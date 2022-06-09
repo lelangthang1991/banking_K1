@@ -15,20 +15,19 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionDTO {
-    @NotBlank
+    @NotBlank(message = "Owner number could not be null or empty")
     @Size(min = 13, max = 20)
     private String ownerNumber;
-
     private String transactionId;
-    @Min(value = 0)
+    @Min(value = 0, message = "Amount has the smallest value of 0")
     private Double amount;
     private Double balance;
     private Double fee;
-    @NotBlank
-    @Size(max = 4)
+    @NotBlank(message = "Pin code could not be null or empty")
+    @Size(max = 4, message = "Pin code required 4 numbers")
     private String pinCode;
-    @NotBlank
-    @Size(max = 200)
+    @NotBlank(message = "Body could not be null or empty")
+    @Size(max = 200, message = "Body has the maximum value of 200")
     private String body;
     private String unitCurrency;
     private Integer status;

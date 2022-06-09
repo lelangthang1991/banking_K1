@@ -11,11 +11,11 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangePinCodeDTO {
-    @NotBlank
+    @NotBlank(message = "Card number could not be null or empty")
     private String cardNumber;
-    @NotBlank
-    @Size(max = 4)
+    @NotBlank(message = "Pin code could not be null or empty")
+    @Size(max = 4, message = "Pin code required 4 numbers")
     private String pinCode;
-    @NotBlank
+    @NotBlank(message = "New pin code could not be null or empty")
     private String newPinCode;
 }

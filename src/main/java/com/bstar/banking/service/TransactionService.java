@@ -1,7 +1,7 @@
 package com.bstar.banking.service;
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
-import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
+import com.bstar.banking.model.request.FilterTransactionDTO;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
@@ -15,13 +15,14 @@ public interface TransactionService {
 
     RestResponse<?> transferMoney(TransactionDTO transferMoneyDTO, Authentication authentication);
 
-    RestResponse<ResponsePageCard> listTransactionByCardAndType(ListTransactionByDatePagingRequest listTransactionDTO,
+    RestResponse<ResponsePageCard> listTransactionByCardAndType(FilterTransactionDTO listTransactionDTO,
                                                                 Authentication authentication);
 
-    RestResponse<ResponsePageCard> listAllTransactionByCard(ListTransactionByDatePagingRequest listTransactionPagingRequest,
+    RestResponse<ResponsePageCard> listAllTransactionByCard(FilterTransactionDTO listTransactionPagingRequest,
                                                             Authentication authentication);
 
-    RestResponse<ResponsePageCard> listTransaction(ListTransactionByDatePagingRequest listTransactionByDatePagingRequest,
+    RestResponse<ResponsePageCard> listTransaction(FilterTransactionDTO filterTransactionDTO,
                                                    Authentication authentication);
 
+    RestResponse<ResponsePageCard> listAdminTransaction(FilterTransactionDTO filterTransactionDTO);
 }
