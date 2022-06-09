@@ -10,6 +10,6 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ActivateCardDTO {
-    @NotBlank
+    @NotBlank(message = "Card number could not be null or empty")
     private String cardNumber;
 }

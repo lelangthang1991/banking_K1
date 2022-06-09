@@ -17,5 +17,6 @@ public interface TransactionService {
 
     RestResponse<ResponsePageCard> listTransaction(FilterTransactionDTO listTransactionByDatePagingRequest,
                                                    Authentication authentication);
+    RestResponse<ResponsePageCard> listAdminTransaction(FilterTransactionDTO filterTransactionDTO);
 
 }

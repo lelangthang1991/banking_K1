@@ -10,10 +10,10 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangePasswordDTO {
-    @NotBlank
+    @NotBlank(message = "Password number could not be null or empty")
     private String password;
-    @NotBlank
+    @NotBlank(message = "New password number could not be null or empty")
     private String newPassword;
-    @NotBlank
+    @NotBlank(message = "Confirm new password number could not be null or empty")
     private String confirmNewPassword;
 }

@@ -3,7 +3,6 @@ package com.bstar.banking.controller;
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
 import com.bstar.banking.model.request.FilterTransactionDTO;
-import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
@@ -15,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.text.ParseException;
 
 @PreAuthorize("hasAuthority('1')")
 @RequiredArgsConstructor
@@ -35,7 +33,7 @@ public class TransactionController {
     }
 
     @PostMapping("/transfer-money")
-    public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication)  {
+    public ResponseEntity<?> transferMoney(@Valid @RequestBody TransactionDTO transferMoneyDTO, Authentication authentication) {
         return ResponseEntity.ok(transactionService.transferMoney(transferMoneyDTO, authentication));
     }
 

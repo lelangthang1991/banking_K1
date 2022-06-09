@@ -14,7 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FilterTransactionDTO {
-    @Pattern(regexp = "^[0-9]+$", message = "the value must be positive integer")
+    @Pattern(regexp = "^[0-9]+$", message = "Card number value must be positive integer")
     private String cardNumber;
     private String createPerson;
     private String updatePerson;

@@ -2,10 +2,10 @@ package com.bstar.banking.common;
 
 public class UserString {
 
-    public static final String GET_PAGE_USER_SUCCESS = "Get page user success";
-    public static final String GET_ONE_USER_SUCCESS = "Get one user success";
+    public static final String GET_PAGE_USER_SUCCESSFUL = "Get page user successful";
+    public static final String GET_ONE_USER_SUCCESSFUL = "Get one user successful";
     public static final String GET_USER_EMAIL_NOT_FOUND = "Get user email not found";
-    public static final String CHANGE_PASSWORD_SUCCESS = "Change password success";
+    public static final String CHANGE_PASSWORD_SUCCESSFUL = "Change password successful";
     public static final String VERIFY_PASSWORD_DOES_NOT_MATCH = "Verify password does not match";
     public static final String VERIFY_CODE_DOES_NOT_MATCH = "Verify code does not match";
 
@@ -17,11 +17,11 @@ public class UserString {
 
     public static final String SUCCESSFUL_CARD_ACTIVATION = "Successful card activation";
     public static final String CARD_ACTIVATION_FAILED = "Card activation failed";
-    public static final String USER_LOGOUT_SUCCESS = "User logout success";
+    public static final String USER_LOGOUT_SUCCESS = "User logout successful";
 
     public static final String REGISTRATION_FAILED = "Registration failed, please try again!";
 
-    public static final String PINCODE_DOES_NOT_MATCH = "PINCODE does not match!";
+    public static final String PIN_CODE_DOES_NOT_MATCH = "Pin code does not match!";
 
     public static final String YOUR_AGE_IS_NOT_ENOUGH_TO_SIGN_UP = "Your age is not enough to sign up";
 

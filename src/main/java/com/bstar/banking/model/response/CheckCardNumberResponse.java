@@ -7,10 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResponsePageCard {
-    private int pageNumber;
-    private long pageSize;
-    private int totalPages;
-    private long totalItem;
-    private Object pageContent;
+public class CheckCardNumberResponse {
+    private String firstName;
+    private String lastName;
+    private Boolean isActivated;
 }

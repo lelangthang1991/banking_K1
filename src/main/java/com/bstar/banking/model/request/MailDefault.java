@@ -11,13 +11,13 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 public class MailDefault {
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email sender could not be null or empty")
+    @Email(message = "Invalid sender email format")
     private String to;
     private String subject;
     private String text;
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email receiver could not be null or empty")
+    @Email(message = "Invalid receiver email format")
     private String from;
      private String cc;
      private String bcc;

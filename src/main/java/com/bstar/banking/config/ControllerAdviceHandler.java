@@ -9,6 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -95,6 +97,17 @@ public class ControllerAdviceHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(PinCodeException.class)
     public ResponseEntity<?> handlerPinCodeException(PinCodeException ex) {
+        logger.error(ex.getMessage());
+        return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", ex.getMessage()));
+    }
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<?> handlerBadCredentialsException(BadCredentialsException ex) {
+        logger.error(ex.getMessage());
+        return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", ex.getMessage()));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<?> handlerDisabledException(DisabledException ex) {
         logger.error(ex.getMessage());
         return ResponseEntity.status(BAD_REQUEST).body(new ExceptionResponse("400", ex.getMessage()));
     }
