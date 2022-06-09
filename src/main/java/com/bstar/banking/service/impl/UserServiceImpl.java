@@ -8,6 +8,7 @@ import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.BusinessException;
 import com.bstar.banking.exception.CompareException;
 import com.bstar.banking.exception.NotFoundException;
+import com.bstar.banking.jwt.AuthenticationHandler;
 import com.bstar.banking.jwt.JwtUtil;
 import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.LoginResponse;
@@ -21,17 +22,13 @@ import com.bstar.banking.security.UserDetailsServiceImpl;
 import com.bstar.banking.service.MailerService;
 import com.bstar.banking.service.UserService;
 import com.bstar.banking.utils.DeviceType;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,14 +43,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.bstar.banking.common.ExceptionString.USER_DISABLED;
 import static com.bstar.banking.common.JwtString.*;
 import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
 import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.*;
 import static java.util.Objects.nonNull;
 
-
+@RequiredArgsConstructor
 @Transactional
 @Service
 public class UserServiceImpl implements UserService {
@@ -64,69 +60,46 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserDetailsServiceImpl userDetailsService;
     private final ModelMapper modelMapper;
-    private final RandomVerifycode verifyCode = new RandomVerifycode();
     private final DeviceType deviceType;
     private final HttpServletRequest request;
-    @Autowired
-    MailerService mailerService;
-    private final AuthenticationManager authenticationManager;
-
-
-    public void authenticate(String email, String password) throws Exception {
-        try {
-            Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-            SecurityContextHolder.getContext().setAuthentication(auth);
-        } catch (DisabledException e) {
-            throw new DisabledException(USER_DISABLED, e);
-        } catch (BadCredentialsException e) {
-            throw new BadCredentialsException(INCORRECT_EMAIL_OR_PASSWORD, e);
-        }
-    }
-
-    public UserServiceImpl(UserRepository userRepository, TransactionRepository transactionRepository, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, JavaMailSender sender, AuthenticationManager authenticationManager, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder, ModelMapper modelMapper, DeviceType deviceType, HttpServletRequest request, AuthenticationManager authenticationManager1) {
-        this.userRepository = userRepository;
-        this.transactionRepository = transactionRepository;
-        this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
-        this.sessionRepository = sessionRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.modelMapper = modelMapper;
-        this.deviceType = deviceType;
-        this.request = request;
-        this.authenticationManager = authenticationManager1;
-    }
+    private final MailerService mailerService;
+    private final AuthenticationHandler authenticationHandler;
 
     @Override
     public RestResponse<LoginResponse> generateTokenAndRefreshToken(LoginDTO loginRequest) throws Exception {
         String password = loginRequest.getPassword();
         String email = loginRequest.getEmail();
-        authenticate(email, password); // Call LDAP/Validate manual
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        String token = jwtUtil.generateToken(userDetails);
-        Date tokenExpire = jwtUtil.getExpirationDateFromToken(token);
-        long tokenExpireMillis = tokenExpire.getTime();
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-        Date refreshTokenExpire = jwtUtil.getExpirationDateFromToken(refreshToken);
-        long refreshTokenExpireMillis = refreshTokenExpire.getTime();
-        Session session = new Session();
-        User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
-        String clientIp;
-        String device_type = request.getHeader("user-agent");
-        String clientXForwardedForIp = request.getHeader("x-forwarded-for");
-        if (nonNull(clientXForwardedForIp)) {
-            clientIp = deviceType.parseXForwardedHeader(clientXForwardedForIp);
+        boolean isLogin = authenticationHandler.authenticate(email, password); // Call LDAP/Validate manual
+        if (isLogin) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            String token = jwtUtil.generateToken(userDetails);
+            Date tokenExpire = jwtUtil.getExpirationDateFromToken(token);
+            long tokenExpireMillis = tokenExpire.getTime();
+            String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+            Date refreshTokenExpire = jwtUtil.getExpirationDateFromToken(refreshToken);
+            long refreshTokenExpireMillis = refreshTokenExpire.getTime();
+            Session session = new Session();
+            User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
+            String clientIp;
+            String device_type = request.getHeader("user-agent");
+            String clientXForwardedForIp = request.getHeader("x-forwarded-for");
+            if (nonNull(clientXForwardedForIp)) {
+                clientIp = deviceType.parseXForwardedHeader(clientXForwardedForIp);
+            } else {
+                clientIp = request.getRemoteAddr();
+            }
+            session.setRefreshToken(refreshToken);
+            session.setExpired(refreshTokenExpire);
+            session.setCreateDate(new Date());
+            session.setDeviceType(device_type);
+            session.setIpAddress(clientIp);
+            session.setUser(user);
+            sessionRepository.save(session);
+            LoginResponse data = new LoginResponse(token, tokenExpireMillis, refreshToken, refreshTokenExpireMillis);
+            return new RestResponse<>(OK, LOGIN_SUCCESS, data);
         } else {
-            clientIp = request.getRemoteAddr();
+            throw new NotFoundException(LOGIN_FAILURE);
         }
-        session.setRefreshToken(refreshToken);
-        session.setExpired(refreshTokenExpire);
-        session.setCreateDate(new Date());
-        session.setDeviceType(device_type);
-        session.setIpAddress(clientIp);
-        session.setUser(user);
-        sessionRepository.save(session);
-        LoginResponse data = new LoginResponse(token, tokenExpireMillis, refreshToken, refreshTokenExpireMillis);
-        return new RestResponse<>(OK, LOGIN_SUCCESS, data);
     }
 
 
@@ -158,7 +131,8 @@ public class UserServiceImpl implements UserService {
         } else {
             try {
                 User user = new User();
-                String verifyCode = this.verifyCode.Random();
+                RandomVerifycode verifyCode = new RandomVerifycode();
+                String code = verifyCode.Random();
                 user.setEmail(signupRequest.getEmail());
                 user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
                 user.setFirstName(signupRequest.getFirstName());
@@ -172,10 +146,10 @@ public class UserServiceImpl implements UserService {
                 user.setUpdateDate(new Date());
                 user.setCreatePerson(signupRequest.getEmail());
                 user.setUpdatePerson(signupRequest.getEmail());
-                user.setVerifyCode(verifyCode);
+                user.setVerifyCode(code);
                 userRepository.save(user);
 
-                mailerService.sendWelcome(user, verifyCode);
+                mailerService.sendWelcome(user, code);
                 return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserResponse.class));
             } catch (Exception e) {
                 return new RestResponse<>(BAD_REQUEST, REGISTRATION_FAILED);
@@ -342,7 +316,8 @@ public class UserServiceImpl implements UserService {
         } else {
             try {
                 User user = new User();
-                String verifyCode = this.verifyCode.Random();
+                RandomVerifycode verifyCode = new RandomVerifycode();
+                String code = verifyCode.Random();
                 user.setEmail(userDTO.getEmail());
                 user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
                 user.setFirstName(userDTO.getFirstName());
@@ -356,9 +331,9 @@ public class UserServiceImpl implements UserService {
                 user.setUpdateDate(new Date());
                 user.setCreatePerson(userDTO.getEmail());
                 user.setUpdatePerson(userDTO.getEmail());
-                user.setVerifyCode(verifyCode);
+                user.setVerifyCode(code);
                 userRepository.save(user);
-                mailerService.sendWelcome(user, verifyCode);
+                mailerService.sendWelcome(user, code);
                 return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
             } catch (Exception e) {
                 throw new CompareException(REGISTRATION_FAILED);
