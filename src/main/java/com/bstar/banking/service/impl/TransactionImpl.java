@@ -10,6 +10,7 @@ import com.bstar.banking.model.request.FilterTransactionDTO;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
+import com.bstar.banking.model.response.TransactionResponse;
 import com.bstar.banking.repository.CardRepository;
 import com.bstar.banking.repository.TransactionRepository;
 import com.bstar.banking.repository.UserRepository;
@@ -253,7 +254,6 @@ public class TransactionImpl implements TransactionService {
                 transactionDTO);
     }
 
-
     @Override
     public RestResponse<ResponsePageCard> listTransaction(FilterTransactionDTO lDate,
                                                           Authentication authentication) {
@@ -263,11 +263,10 @@ public class TransactionImpl implements TransactionService {
             String email = authentication.getName();
             User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
             Page<Transaction> listPage = transactionRepository.listTransaction(lDate, page);
-            List<TransactionDTO> listDTO = listPage.getContent()
+            List<TransactionResponse> listDTO = listPage.getContent()
                     .parallelStream()
-                    .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
+                    .map(transaction -> modelMapper.map(transaction, TransactionResponse.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
@@ -284,7 +283,6 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),

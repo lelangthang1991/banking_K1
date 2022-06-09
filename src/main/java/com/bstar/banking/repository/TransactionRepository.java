@@ -31,21 +31,21 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
 
     @Query("SELECT t FROM Transaction t WHERE " +
             "(:#{#transDTO.cardNumber}  IS NULL OR t.card.cardNumber LIKE  :#{#transDTO.cardNumber} || '%' )" +
-            " AND ( :#{#transDTO.createPerson} IS NULL OR t.createPerson LIKE :#{#transDTO.createPerson} || '%'   ) " +
-            " AND ( :#{#transDTO.transactionType} IS NULL OR t.transactionType = :#{#transDTO.transactionType})" +
-            " AND ( :#{#transDTO.startDate} IS NULL OR DATE(t.createDate) = :#{#transDTO.startDate}   )" +
-            " AND (:#{#transDTO.endDate} IS NULL OR DATE(t.createDate) = :#{#transDTO.endDate}  ) " +
-            " OR  ( DATE(t.createDate) BETWEEN :#{#transDTO.startDate} AND :#{#transDTO.endDate} ) ")
+            " AND ( :#{#transDTO.createPerson} IS NULL OR t.createPerson LIKE :#{#transDTO.createPerson} || '%') " +
+            " AND ( :#{#transDTO.startDate} IS NULL OR DATE(t.createDate) > :#{#transDTO.startDate} )" +
+            " AND ( :#{#transDTO.endDate} IS NULL OR DATE(t.createDate) < :#{#transDTO.endDate} )" +
+            " AND ( :#{#transDTO.transactionType} IS NULL OR t.transactionType = :#{#transDTO.transactionType}) " +
+            " AND ( 1=1 OR (DATE(t.createDate) BETWEEN :#{#transDTO.startDate} AND :#{#transDTO.endDate} )) ")
     Page<Transaction> listTransaction(@Param("transDTO") FilterTransactionDTO transDTO, Pageable pageable);
 
 
     @Query("SELECT t FROM Transaction t WHERE " +
             "(:#{#transDTO.cardNumber}  IS NULL OR t.card.cardNumber LIKE  :#{#transDTO.cardNumber} || '%' )" +
-            " AND ( :#{#transDTO.createPerson} IS NULL OR t.createPerson LIKE :#{#transDTO.createPerson} || '%'   ) " +
-            " AND ( :#{#transDTO.transactionType} IS NULL OR t.transactionType = :#{#transDTO.transactionType})" +
-            " AND ( :#{#transDTO.startDate} IS NULL OR DATE(t.createDate) = :#{#transDTO.startDate}   )" +
-            " AND (:#{#transDTO.endDate} IS NULL OR DATE(t.createDate) = :#{#transDTO.endDate}  ) " +
-            " OR  ( DATE(t.createDate) BETWEEN :#{#transDTO.startDate} AND :#{#transDTO.endDate} ) ")
+            " AND ( :#{#transDTO.createPerson} IS NULL OR t.createPerson LIKE :#{#transDTO.createPerson} || '%') " +
+            " AND ( :#{#transDTO.startDate} IS NULL OR DATE(t.createDate) > :#{#transDTO.startDate} )" +
+            " AND ( :#{#transDTO.endDate} IS NULL OR DATE(t.createDate) < :#{#transDTO.endDate} )" +
+            " AND ( :#{#transDTO.transactionType} IS NULL OR t.transactionType = :#{#transDTO.transactionType}) " +
+            " AND ( 1=1 OR (DATE(t.createDate) BETWEEN :#{#transDTO.startDate} AND :#{#transDTO.endDate} )) ")
     Page<Transaction> adminListTransaction(@Param("transDTO") FilterTransactionDTO transDTO, Pageable pageable);
 
 
