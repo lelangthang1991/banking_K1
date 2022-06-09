@@ -17,12 +17,13 @@ import java.util.Date;
 public class TransactionDTO {
     @NotBlank
     @Size(min = 13, max = 20)
-    private String transferNumber;
+    private String ownerNumber;
 
     private String transactionId;
     @Min(value = 0)
     private Double amount;
     private Double balance;
+    private Double fee;
     @NotBlank
     @Size(max = 4)
     private String pinCode;

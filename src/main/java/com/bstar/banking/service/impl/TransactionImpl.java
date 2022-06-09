@@ -22,7 +22,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +51,7 @@ public class TransactionImpl implements TransactionService {
     @Autowired
     ModelMapper modelMapper;
 
-    @Async
+
     public RestResponse<?> depositMoney(DepositMoneyDTO depositMoneyDTO, Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
@@ -92,13 +91,13 @@ public class TransactionImpl implements TransactionService {
         transactionRepository.save(transaction);
         TransactionDTO transactionDTO;
         transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
-        transactionDTO.setTransferNumber(getCard.getCardNumber());
+        transactionDTO.setOwnerNumber(getCard.getCardNumber());
         transactionDTO.setBalance(getCard.getBalance());
         return new RestResponse<>(OK, DEPOSIT_SUCCESSFUL,
                 transactionDTO);
     }
 
-    @Async
+
     public RestResponse<?> withdrawMoney(DepositMoneyDTO withdrawMoneyDTO, Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
@@ -145,19 +144,18 @@ public class TransactionImpl implements TransactionService {
         transactionRepository.save(transaction);
         TransactionDTO transactionDTO;
         transactionDTO = modelMapper.map(transaction, TransactionDTO.class);
-        transactionDTO.setTransferNumber(getCard.getCardNumber());
+        transactionDTO.setOwnerNumber(getCard.getCardNumber());
         transactionDTO.setTransactionId(transaction.getTransactionId());
         transactionDTO.setBalance(getCard.getBalance());
         return new RestResponse<>(OK, WITHDRAW_SUCCESSFUL,
                 transactionDTO);
     }
 
-    @Async
     public RestResponse<?> transferMoney(TransactionDTO transferMoneyDTO, Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
         Optional<Card> card = user.getCards().stream()
-                .filter(us -> us.getCardNumber().equals(transferMoneyDTO.getTransferNumber()))
+                .filter(us -> us.getCardNumber().equals(transferMoneyDTO.getOwnerNumber()))
                 .findFirst();
         Card cardTransfer = card.orElseThrow(() -> new NotFoundException(CARD_NOT_FOUND));
         Card cardBeneficial = cardRepository.findById(transferMoneyDTO.
@@ -248,9 +246,10 @@ public class TransactionImpl implements TransactionService {
 
         TransactionDTO transactionDTO;
         transactionDTO = modelMapper.map(transactionTransfer, TransactionDTO.class);
-        transactionDTO.setTransferNumber(cardTransfer.getCardNumber());
+        transactionDTO.setOwnerNumber(cardTransfer.getCardNumber());
         transactionDTO.setBalance(cardTransfer.getBalance());
         transactionDTO.setTransactionId(transactionTransfer.getTransactionId());
+        transactionDTO.setFee(transactionTransfer.getFee());
         return new RestResponse<>(OK, TRANSFER_MONEY_SUCCESSFUL,
                 transactionDTO);
     }
@@ -271,7 +270,7 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setTransferNumber(lDate.getCardNumber()));
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
@@ -293,7 +292,7 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setTransferNumber(lDate.getCardNumber()));
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
@@ -319,7 +318,7 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setTransferNumber(lDate.getCardNumber()));
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
@@ -340,7 +339,7 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setTransferNumber(lDate.getCardNumber()));
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
@@ -368,7 +367,7 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setTransferNumber(lDate.getCardNumber()));
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
@@ -390,7 +389,7 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(transaction -> modelMapper.map(transaction, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setTransferNumber(lDate.getCardNumber()));
+            listDTO.forEach(l -> l.setOwnerNumber(lDate.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFULLY, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),

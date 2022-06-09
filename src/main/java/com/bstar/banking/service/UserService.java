@@ -38,5 +38,5 @@ public interface UserService {
 
     RestResponse<?> userAdminDecentralization(DecentralizationDTO dto);
 
-
+    RestResponse<?> findAllCardUser();
 }

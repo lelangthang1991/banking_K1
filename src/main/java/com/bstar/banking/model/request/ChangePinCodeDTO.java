@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Data
 @NoArgsConstructor
@@ -13,6 +14,7 @@ public class ChangePinCodeDTO {
     @NotBlank
     private String cardNumber;
     @NotBlank
+    @Size(max = 4)
     private String pinCode;
     @NotBlank
     private String newPinCode;

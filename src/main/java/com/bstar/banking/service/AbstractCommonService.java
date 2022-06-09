@@ -6,6 +6,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import static com.bstar.banking.common.ExceptionString.INVALID_CREDENTIAL;
@@ -19,7 +21,8 @@ public abstract class AbstractCommonService {
 
     public void authenticate(String email, String password) throws Exception {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+            Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+            SecurityContextHolder.getContext().setAuthentication(auth);
         } catch (DisabledException e) {
             throw new Exception(USER_DISABLED, e);
         } catch (BadCredentialsException e) {

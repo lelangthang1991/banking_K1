@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
@@ -20,5 +18,6 @@ public class RegisterBankCardRq {
     @NotBlank
     @Size(max = 4, message = "pincode requires 4 numbers")
     private String confirmPinCode;
+    private Integer cardType;
 
 }
