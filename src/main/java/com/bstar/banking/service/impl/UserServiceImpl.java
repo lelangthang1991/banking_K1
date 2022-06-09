@@ -12,6 +12,7 @@ import com.bstar.banking.model.request.*;
 import com.bstar.banking.model.response.LoginResponse;
 import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
+import com.bstar.banking.model.response.UserResponse;
 import com.bstar.banking.repository.SessionRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.security.UserDetailsServiceImpl;
@@ -43,7 +44,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.bstar.banking.common.ExceptionString.INVALID_CREDENTIAL;
 import static com.bstar.banking.common.ExceptionString.USER_DISABLED;
 import static com.bstar.banking.common.JwtString.*;
 import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
@@ -74,9 +74,9 @@ public class UserServiceImpl implements UserService {
             Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
             SecurityContextHolder.getContext().setAuthentication(auth);
         } catch (DisabledException e) {
-            throw new Exception(USER_DISABLED, e);
+            throw new DisabledException(USER_DISABLED, e);
         } catch (BadCredentialsException e) {
-            throw new Exception(INVALID_CREDENTIAL, e);
+            throw new BadCredentialsException(INCORRECT_EMAIL_OR_PASSWORD, e);
         }
     }
 
@@ -137,7 +137,7 @@ public class UserServiceImpl implements UserService {
         user.setVerifyCode("");
         user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getNewPassword()));
         userRepository.save(user);
-        return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
+        return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESSFUL);
     }
 
     @Override
@@ -172,7 +172,7 @@ public class UserServiceImpl implements UserService {
                 userRepository.save(user);
 
                 mailerService.sendWelcome(user, verifyCode);
-                return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
+                return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserResponse.class));
             } catch (Exception e) {
                 return new RestResponse<>(BAD_REQUEST, REGISTRATION_FAILED);
             }
@@ -204,14 +204,14 @@ public class UserServiceImpl implements UserService {
         user.setUpdateDate(new Date());
         user.setUpdatePerson(user.getEmail());
         userRepository.save(user);
-        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
+        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserResponse.class));
     }
 
     @Override
     public RestResponse<?> infoUser(Authentication authentication) {
         User user = userRepository.getUserByEmail(authentication.getName()).orElseThrow(() ->
-                                                    new BusinessException(USER_NOT_FOUND));
-        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
+                new BusinessException(USER_NOT_FOUND));
+        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserResponse.class));
     }
 
     @Override
@@ -226,7 +226,7 @@ public class UserServiceImpl implements UserService {
             throw new CompareException(NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
         } else {
             user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
-            return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESS);
+            return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESSFUL);
         }
     }
 
@@ -279,8 +279,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public RestResponse<?> findOneUser(String email) {
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, userDTO);
+        UserResponse response = modelMapper.map(user, UserResponse.class);
+        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, response);
     }
 
     @Override
@@ -288,10 +288,10 @@ public class UserServiceImpl implements UserService {
         if (StringUtils.isBlank(userDTO.getSortField()) || StringUtils.isBlank(userDTO.getSortDir())) {
             Pageable pageable = org.springframework.data.domain.PageRequest.of(userDTO.getPageNumber(), userDTO.getPageSize());
             Page<User> cards = userRepository.findAllUserFiltered(userDTO, pageable);
-            List<UserDTO> cardDTOS = cards.stream()
-                    .map(acc -> modelMapper.map(acc, UserDTO.class))
+            List<UserResponse> cardDTOS = cards.stream()
+                    .map(acc -> modelMapper.map(acc, UserResponse.class))
                     .collect(Collectors.toList());
-            return new RestResponse<>(OK, GET_PAGE_USER_SUCCESS, new ResponsePageCard(
+            return new RestResponse<>(OK, GET_PAGE_USER_SUCCESSFUL, new ResponsePageCard(
                     cards.getNumber(),
                     cards.getSize(),
                     cards.getTotalPages(),
@@ -302,10 +302,10 @@ public class UserServiceImpl implements UserService {
             sort = userDTO.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
             Pageable pageable = PageRequest.of(userDTO.getPageNumber(), userDTO.getPageSize(), sort);
             Page<User> cards = userRepository.findAllUserFiltered(userDTO, pageable);
-            List<UserDTO> cardDTOS = cards.stream()
-                    .map(acc -> modelMapper.map(acc, UserDTO.class))
+            List<UserResponse> cardDTOS = cards.stream()
+                    .map(acc -> modelMapper.map(acc, UserResponse.class))
                     .collect(Collectors.toList());
-            return new RestResponse<>(OK, GET_PAGE_USER_SUCCESS, new ResponsePageCard(
+            return new RestResponse<>(OK, GET_PAGE_USER_SUCCESSFUL, new ResponsePageCard(
                     cards.getNumber(),
                     cards.getSize(),
                     cards.getTotalPages(),
@@ -344,7 +344,7 @@ public class UserServiceImpl implements UserService {
                 user.setVerifyCode(verifyCode);
                 userRepository.save(user);
                 mailerService.sendWelcome(user, verifyCode);
-                return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
+                return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserResponse.class));
             } catch (Exception e) {
                 throw new CompareException(REGISTRATION_FAILED);
             }
@@ -368,7 +368,7 @@ public class UserServiceImpl implements UserService {
         user.setUpdatePerson(emailAdmin);
         user.setUpdateDate(new Date());
         User userSave = userRepository.save(user);
-        return new RestResponse<>(OK, UPDATE_SUCCESSFUL, modelMapper.map(userSave, UserDTO.class));
+        return new RestResponse<>(OK, UPDATE_SUCCESSFUL, modelMapper.map(userSave, UserResponse.class));
     }
 
     @Override

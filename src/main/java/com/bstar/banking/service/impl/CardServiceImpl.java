@@ -7,13 +7,17 @@ import com.bstar.banking.exception.CompareException;
 import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.exception.PinCodeException;
 import com.bstar.banking.model.request.*;
+import com.bstar.banking.model.response.CheckCardNumberResponse;
 import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.CardRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.service.CardService;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,19 +35,15 @@ import static com.bstar.banking.common.StatusCodeString.NOT_FOUND;
 import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.*;
 
+@RequiredArgsConstructor
 @Transactional
 @Service
 public class CardServiceImpl implements CardService {
-
+    private static final Logger logger = LoggerFactory.getLogger(CardServiceImpl.class);
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    public CardServiceImpl(CardRepository cardRepository, UserRepository userRepository, ModelMapper modelMapper) {
-        this.cardRepository = cardRepository;
-        this.userRepository = userRepository;
-        this.modelMapper = modelMapper;
-    }
 
     @Override
     public RestResponse<?> checkPinCode(PinCodeDTO pinCodeDTO, Authentication authentication) {
@@ -125,7 +125,7 @@ public class CardServiceImpl implements CardService {
     public RestResponse<?> cardRegister(RegisterBankCardRq registerDTO,
                                         Authentication authentication) {
         if (!registerDTO.getPinCode().equals(registerDTO.getConfirmPinCode())) {
-            throw new CompareException(PINCODE_DOES_NOT_MATCH);
+            throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
@@ -157,7 +157,7 @@ public class CardServiceImpl implements CardService {
     @Override
     public RestResponse<?> adminBankRegister(AdminRegisterDTO registerDTO, Authentication authentication) {
         if (!registerDTO.getPinCode().equals(registerDTO.getConfirmPinCode())) {
-            throw new CompareException(PINCODE_DOES_NOT_MATCH);
+            throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
         String email = authentication.getName();
         User user = userRepository.findById(registerDTO.getEmail()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
@@ -188,7 +188,7 @@ public class CardServiceImpl implements CardService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(CARD_NUMBER_NOT_FOUND));
         if (!changePinCodeDTO.getPinCode().equals(card.getPinCode())) {
-            throw new PinCodeException(PINCODE_DOES_NOT_MATCH);
+            throw new PinCodeException(PIN_CODE_DOES_NOT_MATCH);
         }
         if (changePinCodeDTO.getNewPinCode().equals(card.getPinCode())) {
             throw new PinCodeException(NEW_PIN_CODE_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
@@ -243,9 +243,14 @@ public class CardServiceImpl implements CardService {
         cardRepository.save(card);
         return new RestResponse<>(OK, CARD_ACTIVATE_SUCCESS);
     }
+
     @Override
     public RestResponse<?> checkCardNumber(String cardNumber) {
+        CheckCardNumberResponse cardNumberResponse = new CheckCardNumberResponse();
         Card card = cardRepository.findById(cardNumber).orElseThrow(() -> new NotFoundException(CARD_NUMBER_NOT_FOUND));
-        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(card.getUser(), UserDTO.class));
+        cardNumberResponse.setFirstName(card.getUser().getFirstName());
+        cardNumberResponse.setLastName(card.getUser().getLastName());
+        cardNumberResponse.setIsActivated(card.getIsActivated());
+        return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, cardNumberResponse);
     }
 }

@@ -11,12 +11,12 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ForgotPasswordDTO {
-    @Email
-    @NotBlank
+    @NotBlank(message = "Email could not be null or empty")
+    @Email(message = "Invalid email format")
     private String email;
-    @NotBlank
+    @NotBlank(message = "New password could not be null or empty")
     private String newPassword;
-    @NotBlank
+    @NotBlank(message = "Verify code could not be null or empty")
     private String verifyCode;
 
 }

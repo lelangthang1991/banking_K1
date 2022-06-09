@@ -11,7 +11,7 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmailRequest {
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email could not be null or empty")
+    @Email(message = "Invalid email format")
     private String email;
 }

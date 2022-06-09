@@ -10,16 +10,16 @@ import javax.validation.constraints.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdminRegisterDTO {
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email could not be null or empty")
+    @Email(message = "Invalid email format")
     private String email;
-    @Min(1)
-    @Max(5)
+    @Min(value = 1, message = "Card type has the smallest value of 0")
+    @Max(value = 1, message = "Card type has the maximum value of 5")
     private int cardType;
-    @NotBlank
-    @Size(min = 4, max = 4, message = "pincode requires 4 numbers")
+    @NotBlank(message = "Pin Code could not be null or empty")
+    @Size(min = 4, max = 4, message = "Pin code required 4 numbers")
     private String pinCode;
-    @NotBlank
-    @Size(max = 4, message = "pincode requires 4 numbers")
+    @NotBlank(message = "Confirm pin code could not be null or empty")
+    @Size(max = 4, message = "Pin code required 4 numbers")
     private String confirmPinCode;
 }

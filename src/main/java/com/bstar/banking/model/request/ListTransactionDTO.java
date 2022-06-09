@@ -15,7 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class ListTransactionDTO {
 
-    @NotBlank
+    @NotBlank(message = "Card number could not be null or empty")
     @Size(min = 13, max = 16)
     private String cardNumber;
     private Integer cardType;

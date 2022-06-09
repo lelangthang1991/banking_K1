@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.bstar.banking.common.MailerString.SEND_MAIL_SUCCESS;
+import static com.bstar.banking.common.MailerString.*;
 import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
 import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.GET_USER_EMAIL_NOT_FOUND;
@@ -112,7 +112,7 @@ public class MailerServiceImpl implements MailerService {
             return new RestResponse<>(OK, SEND_MAIL_SUCCESS, new ForgotPasswordResponse(user.getEmail()));
         } catch (Exception e) {
             e.printStackTrace();
-            throw new NotFoundException(BAD_REQUEST, "INVALID_EMAIL");
+            throw new NotFoundException(BAD_REQUEST, SEND_MAIL_FAILURE);
         }
     }
 }

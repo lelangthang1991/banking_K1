@@ -1,10 +1,12 @@
 package com.bstar.banking.repository;
 
 import com.bstar.banking.entity.Transaction;
+import com.bstar.banking.model.request.FilterTransactionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -71,6 +73,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
                                       Date startDate, Date endDate,
                                       Pageable pageable);
 
-
+    @Query("SELECT t FROM Transaction t WHERE " +
+            "(:#{#transDTO.cardNumber}  IS NULL OR t.card.cardNumber LIKE  :#{#transDTO.cardNumber} || '%' )" +
+            " AND ( :#{#transDTO.createPerson} IS NULL OR t.createPerson LIKE :#{#transDTO.createPerson} || '%'   ) " +
+            " AND ( :#{#transDTO.transactionType} IS NULL OR t.transactionType = :#{#transDTO.transactionType})" +
+            " AND ( :#{#transDTO.startDate} IS NULL OR DATE(t.createDate) = :#{#transDTO.startDate}   )" +
+            " AND (:#{#transDTO.endDate} IS NULL OR DATE(t.createDate) = :#{#transDTO.endDate}  ) " +
+            " OR  ( DATE(t.createDate) BETWEEN :#{#transDTO.startDate} AND :#{#transDTO.endDate} ) ")
+    Page<Transaction> adminListTransaction(@Param("transDTO") FilterTransactionDTO transDTO, Pageable pageable);
 
 }
