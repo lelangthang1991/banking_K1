@@ -302,7 +302,6 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(tran -> modelMapper.map(tran, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(transaction.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
@@ -317,7 +316,6 @@ public class TransactionImpl implements TransactionService {
                     .parallelStream()
                     .map(tran -> modelMapper.map(tran, TransactionDTO.class))
                     .collect(Collectors.toList());
-            listDTO.forEach(l -> l.setOwnerNumber(transaction.getCardNumber()));
             return new RestResponse<>(OK, GET_LIST_SUCCESSFUL, new ResponsePageCard(listPage.getNumber(),
                     listPage.getSize(),
                     listPage.getTotalPages(),
