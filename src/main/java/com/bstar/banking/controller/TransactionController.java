@@ -2,6 +2,7 @@ package com.bstar.banking.controller;
 
 
 import com.bstar.banking.model.request.DepositMoneyDTO;
+import com.bstar.banking.model.request.FilterTransactionDTO;
 import com.bstar.banking.model.request.ListTransactionByDatePagingRequest;
 import com.bstar.banking.model.request.TransactionDTO;
 import com.bstar.banking.model.response.ResponsePageCard;
@@ -38,18 +39,8 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.transferMoney(transferMoneyDTO, authentication));
     }
 
-
-    @GetMapping("/list-transaction-by-type")
-    public RestResponse<ResponsePageCard> listTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
-        return transactionService.listTransactionByCardAndType(page, authentication);
-    }
-
-    @GetMapping("/list-all-transaction")
-    public RestResponse<ResponsePageCard> listAllTransaction(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
-        return transactionService.listAllTransactionByCard(page, authentication);
-    }
     @GetMapping("/list-transaction")
-    public RestResponse<ResponsePageCard> listTransaction2(@Valid ListTransactionByDatePagingRequest page, Authentication authentication) {
+    public RestResponse<ResponsePageCard> listTransaction2(@Valid FilterTransactionDTO page, Authentication authentication) {
         return transactionService.listTransaction(page, authentication);
     }
 

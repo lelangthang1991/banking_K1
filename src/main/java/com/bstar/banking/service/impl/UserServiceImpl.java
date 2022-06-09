@@ -2,6 +2,7 @@ package com.bstar.banking.service.impl;
 
 
 import com.bstar.banking.common.RandomVerifycode;
+import com.bstar.banking.entity.Card;
 import com.bstar.banking.entity.Session;
 import com.bstar.banking.entity.User;
 import com.bstar.banking.exception.BusinessException;
@@ -13,6 +14,7 @@ import com.bstar.banking.model.response.LoginResponse;
 import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.SessionRepository;
+import com.bstar.banking.repository.TransactionRepository;
 import com.bstar.banking.repository.UserRepository;
 import com.bstar.banking.security.UserDetailsServiceImpl;
 import com.bstar.banking.service.MailerService;
@@ -56,6 +58,7 @@ import static java.util.Objects.nonNull;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final TransactionRepository transactionRepository;
     private final SessionRepository sessionRepository;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -80,8 +83,9 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, JavaMailSender sender, AuthenticationManager authenticationManager, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder, ModelMapper modelMapper, DeviceType deviceType, HttpServletRequest request, AuthenticationManager authenticationManager1) {
+    public UserServiceImpl(UserRepository userRepository, TransactionRepository transactionRepository, JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, JavaMailSender sender, AuthenticationManager authenticationManager, SessionRepository sessionRepository, BCryptPasswordEncoder passwordEncoder, ModelMapper modelMapper, DeviceType deviceType, HttpServletRequest request, AuthenticationManager authenticationManager1) {
         this.userRepository = userRepository;
+        this.transactionRepository = transactionRepository;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.sessionRepository = sessionRepository;
@@ -210,7 +214,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public RestResponse<?> infoUser(Authentication authentication) {
         User user = userRepository.getUserByEmail(authentication.getName()).orElseThrow(() ->
-                                                    new BusinessException(USER_NOT_FOUND));
+                new BusinessException(USER_NOT_FOUND));
+        Date currentDate = new Date();
+        List<Card> list = user.getCards();
+        list.forEach(l -> l.setDailyAvailableTransfer(l.getDailyLimitAmount()
+                - transactionRepository.dailyLimit(l.getCardNumber(),
+                user.getEmail(), 3, currentDate)));
+        list.forEach(f -> f.setMonthlyAvailableTransfer(f.getMonthlyLimitAmount()
+                - transactionRepository.monthlyLimit(f.getCardNumber(), user.getEmail(),
+                3, currentDate.getMonth() + 1,
+                currentDate.getYear() + 1900)));
+        user.setCards(list);
+        userRepository.save(user);
         return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserDTO.class));
     }
 

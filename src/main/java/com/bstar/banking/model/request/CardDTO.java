@@ -25,4 +25,6 @@ public class CardDTO {
     private Integer level;
     private Double dailyLimitAmount;
     private Double monthlyLimitAmount;
+    private Double dailyAvailableTransfer;
+    private Double monthlyAvailableTransfer;
 }
