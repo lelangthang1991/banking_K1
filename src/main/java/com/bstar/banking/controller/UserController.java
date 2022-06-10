@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
+import static com.bstar.banking.common.StatusCodeString.OK;
+
 
 @RequiredArgsConstructor
 @RestController

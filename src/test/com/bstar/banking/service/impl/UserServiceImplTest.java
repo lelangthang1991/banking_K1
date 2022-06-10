@@ -8,6 +8,8 @@ import com.bstar.banking.exception.NotFoundException;
 import com.bstar.banking.jwt.AuthenticationHandler;
 import com.bstar.banking.jwt.JwtUtil;
 import com.bstar.banking.model.request.*;
+import com.bstar.banking.model.request.SignupRequest;
+import com.bstar.banking.model.request.UserUpdateRequest;
 import com.bstar.banking.model.response.LoginResponse;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.SessionRepository;
@@ -45,7 +47,7 @@ import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -253,9 +255,22 @@ class UserServiceImplTest {
     }
 
     @Test
-    void signupUser() {
-    }
+    void signupUser_Failure_EmailWasRegisterd() {
+        //given
+        User user = new User();
+        user.setEmail("hoanganh@gmail.com");
+        SignupRequest signupRequest = new SignupRequest();
+        signupRequest.setEmail("hoanganh@gmail.com");
 
+        //when
+        when(userRepository.findById(Mockito.any())).thenReturn(Optional.of(user));
+        when(userRepository.findByPhone(Mockito.any())).thenReturn(Optional.of(user));
+
+        //then
+        Throwable exception = assertThrows(CompareException.class,
+                () -> userService.signupUser(signupRequest));
+        assertEquals(EMAIl_WAS_REGISTERED, exception.getMessage());
+    }
     @Test
     void givenUserEmailAndVerifyCode_thenGetUserByEmailAndSaveUser_whenShouldReturnOkAndCardActivateSuccessful() {
         //given
@@ -290,6 +305,32 @@ class UserServiceImplTest {
                 () ->  userService.activateUser(email, verifyCode));
         assertEquals(CARD_ACTIVATE_FAILED, exception.getMessage());
     }
+
+    @Test
+    void signupUser_Failure_ConfirmPassWord_DoesNotMatch() {
+        //given
+        User user = new User();
+
+        SignupRequest signupRequest = new SignupRequest();
+        signupRequest.setEmail("lehongcong2k@gmail.com");
+        signupRequest.setPassword("1234");
+        signupRequest.setConfirm("1111");
+
+        //when
+        when(userRepository.findById(Mockito.any())).thenReturn(Optional.of(user));
+        when(userRepository.findByPhone(Mockito.any())).thenReturn(Optional.of(user));
+
+        when(signupRequest.getPassword().equals(Mockito.any())).thenReturn(false);
+
+
+        //then
+        Throwable exception = assertThrows(CompareException.class,
+                () -> userService.signupUser(signupRequest));
+        assertEquals(PASSWORD_DOES_NOT_MATCH, exception.getMessage());
+    }
+
+
+
 
     @Test
     void updateUser_success() {
