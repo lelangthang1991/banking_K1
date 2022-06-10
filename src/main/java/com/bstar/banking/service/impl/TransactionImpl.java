@@ -68,7 +68,9 @@ public class TransactionImpl implements TransactionService {
         if (!getCard.getCardNumber().equals(depositMoneyDTO.getCardNumber())) {
             throw new CompareException(CARD_NUMBER_NOT_FOUND);
         }
-
+        if (getCard.getIsActivated().equals(false)) {
+            throw new CompareException(CARD_NOT_ACTIVATED);
+        }
         if (!depositMoneyDTO.getPinCode().equals(getCard.getPinCode())) {
             throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
@@ -119,7 +121,9 @@ public class TransactionImpl implements TransactionService {
         if (withdrawMoneyDTO.getAmount() < 50000) {
             throw new CompareException(WITHDRAW_AMOUNT_NOT_ENOUGH);
         }
-
+        if (getCard.getIsActivated().equals(false)) {
+            throw new CompareException(CARD_NOT_ACTIVATED);
+        }
         if (!withdrawMoneyDTO.getPinCode().equals(getCard.getPinCode())) {
             throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
@@ -187,6 +191,7 @@ public class TransactionImpl implements TransactionService {
         if (!transferMoneyDTO.getPinCode().equals(cardTransfer.getPinCode())) {
             throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
+
         if (transferMoneyDTO.getAmount() + fee > cardTransfer.getBalance() && transferMoneyDTO.getAmount() + fee > cardTransfer.getDailyAvailableTransfer()) {
             throw new CompareException(BALANCE_IS_NOT_ENOUGH);
         }

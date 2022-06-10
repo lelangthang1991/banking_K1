@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.bstar.banking.common.JwtString.*;
-import static com.bstar.banking.common.StatusCodeString.BAD_REQUEST;
 import static com.bstar.banking.common.StatusCodeString.OK;
 import static com.bstar.banking.common.UserString.*;
 import static java.util.Objects.nonNull;
@@ -119,42 +118,37 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public RestResponse<?> signupUser(SignupRequest signupRequest) {
-        boolean isMailRegistered = userRepository.findById(signupRequest.getEmail()).isPresent();
-        boolean isPhoneRegistered = userRepository.findByPhone(signupRequest.getPhone()).isPresent();
-        if (isMailRegistered) {
-            return new RestResponse<>(BAD_REQUEST, EMAIl_WAS_REGISTERED);
-        } else if (isPhoneRegistered) {
-            return new RestResponse<>(BAD_REQUEST, PHONE_WAS_REGISTERED);
-
-        } else if (!signupRequest.getPassword().equals(signupRequest.getConfirm())) {
-            return new RestResponse<>(BAD_REQUEST, PASSWORD_DOES_NOT_MATCH);
-        } else {
-            try {
-                User user = new User();
-                RandomVerifycode verifyCode = new RandomVerifycode();
-                String code = verifyCode.Random();
-                user.setEmail(signupRequest.getEmail());
-                user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-                user.setFirstName(signupRequest.getFirstName());
-                user.setLastName(signupRequest.getLastName());
-                user.setDob(signupRequest.getDob());
-                user.setGender(signupRequest.getGender());
-                user.setAddress(signupRequest.getAddress());
-                user.setPhone(signupRequest.getPhone());
-                user.setIsActivated(false);
-                user.setCreateDate(new Date());
-                user.setUpdateDate(new Date());
-                user.setCreatePerson(signupRequest.getEmail());
-                user.setUpdatePerson(signupRequest.getEmail());
-                user.setVerifyCode(code);
-                userRepository.save(user);
-
-                mailerService.sendWelcome(user, code);
-                return new RestResponse<>(OK, GET_USER_INFO_SUCCESS, modelMapper.map(user, UserResponse.class));
-            } catch (Exception e) {
-                return new RestResponse<>(BAD_REQUEST, REGISTRATION_FAILED);
-            }
+        User userEmail = userRepository.findById(signupRequest.getEmail()).orElse(null);
+        User userPhone = userRepository.findByPhone(signupRequest.getPhone()).orElse(null);
+        if (userEmail.getEmail() != null) {
+            throw new CompareException(EMAIl_WAS_REGISTERED);
         }
+        if (userPhone.getPhone() != null) {
+            throw new CompareException(PHONE_WAS_REGISTERED);
+        }
+        if (!signupRequest.getPassword().equals(signupRequest.getConfirm())) {
+            throw new CompareException(PASSWORD_DOES_NOT_MATCH);
+        }
+        User user = new User();
+        RandomVerifycode verifyCode = new RandomVerifycode();
+        String code = verifyCode.Random();
+        user.setEmail(signupRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+        user.setFirstName(signupRequest.getFirstName());
+        user.setLastName(signupRequest.getLastName());
+        user.setDob(signupRequest.getDob());
+        user.setGender(signupRequest.getGender());
+        user.setAddress(signupRequest.getAddress());
+        user.setPhone(signupRequest.getPhone());
+        user.setIsActivated(false);
+        user.setCreateDate(new Date());
+        user.setUpdateDate(new Date());
+        user.setCreatePerson(signupRequest.getEmail());
+        user.setUpdatePerson(signupRequest.getEmail());
+        user.setVerifyCode(code);
+        userRepository.save(user);
+        mailerService.sendWelcome(user, code);
+        return new RestResponse<>(OK, PLEASE_CHECK_YOUR_EMAIL, modelMapper.map(user, UserResponse.class));
     }
 
     @Override
@@ -166,7 +160,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
             return new RestResponse<>(OK, USER_ACTIVATE_SUCCESSFUL);
         }
-        throw new NotFoundException(BAD_REQUEST, CARD_ACTIVATE_FAILED);
+        throw new NotFoundException(USER_ACTIVATE_FAILURE);
     }
 
     @Override
@@ -211,8 +205,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(authentication.getName()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         if (!passwordEncoder.matches(changePasswordDTO.getPassword(), user.getPassword())) {
             throw new CompareException(PASSWORD_DOES_NOT_MATCH);
-        }
-        else if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())) {
+        } else if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())) {
             throw new CompareException(NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
         }
         user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
