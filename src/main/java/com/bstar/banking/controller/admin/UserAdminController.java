@@ -9,6 +9,7 @@ import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -43,8 +44,10 @@ public class UserAdminController {
 
 
     @PutMapping("/update-user/{email}")
-    public ResponseEntity<RestResponse<?>> userUpdateByEmail(@PathVariable(name = "email") String email, @Valid @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.userAdminUpdate(email, userDTO));
+    public ResponseEntity<RestResponse<?>> userUpdateByEmail(@PathVariable(name = "email") String email,
+                                                             @Valid @RequestBody UserDTO userDTO,
+                                                             Authentication authentication) {
+        return ResponseEntity.ok(userService.userAdminUpdate(email, userDTO, authentication));
     }
 
     @DeleteMapping("/delete-user/{email}")
@@ -53,8 +56,8 @@ public class UserAdminController {
     }
 
     @DeleteMapping("/decentralization-user/{email}")
-    public ResponseEntity<RestResponse<?>> userDecentralization(@Valid @RequestBody DecentralizationDTO dto) {
-        return ResponseEntity.ok(userService.userAdminDecentralization(dto));
+    public ResponseEntity<RestResponse<?>> userDecentralization(@Valid @RequestBody DecentralizationDTO dto,  Authentication authentication) {
+        return ResponseEntity.ok(userService.userAdminDecentralization(dto, authentication));
     }
 
 

@@ -15,8 +15,8 @@ public class UserString {
     public static final String CONFIRM_PASSWORD_DOES_NOT_MATCH = "Confirm password does not match";
     public static final String PLEASE_CHECK_YOUR_EMAIL = "Please check your email to activate your card!";
 
-    public static final String SUCCESSFUL_CARD_ACTIVATION = "Successful card activation";
-    public static final String CARD_ACTIVATION_FAILED = "Card activation failed";
+    public static final String CARD_ACTIVATE_SUCCESSFUL = "Card activate successful";
+    public static final String CARD_ACTIVATE_FAILED = "Card activate failed";
     public static final String USER_LOGOUT_SUCCESS = "User logout successful";
 
     public static final String REGISTRATION_FAILED = "Registration failed, please try again!";
@@ -35,6 +35,8 @@ public class UserString {
     public static final String NEW_PHONE_NUMBER_ALREADY_EXISTS = "New phone number already exists";
     public static final String USER_DISABLED_SUCCESS = "User disabled success";
     public static final String USER_DECENTRALIZATION_SUCCESS = "User decentralization success";
+    public static final String USER_ACTIVATE_SUCCESSFUL = "User activate successful";
+
 
 
 }

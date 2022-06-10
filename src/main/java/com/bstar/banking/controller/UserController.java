@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.mail.MessagingException;
 import javax.validation.Valid;
 
-import static com.bstar.banking.common.StatusCodeString.OK;
-
 
 @RequiredArgsConstructor
 @RestController
@@ -45,32 +43,17 @@ public class UserController {
 
     @PostMapping("/signup-user")
     public ResponseEntity<RestResponse<?>> signupUser(@Valid @RequestBody SignupRequest signupRequest) {
-        RestResponse<?> response = userService.signupUser(signupRequest);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        return ResponseEntity.ok(userService.signupUser(signupRequest));
     }
 
     @GetMapping("/activate-user/{email}/{verify}")
     public ResponseEntity<?> activateUser(@PathVariable String email, @PathVariable String verify) {
-        RestResponse<?> response = userService.activateUser(email, verify);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        return ResponseEntity.ok(userService.activateUser(email, verify));
     }
 
     @PostMapping("/update-user")
     public ResponseEntity<?> update(@Valid @RequestBody UserUpdateRequest updateRequest, Authentication authentication) {
-        RestResponse<?> response = userService.updateUser(updateRequest, authentication);
-        if (response.getStatusCode().equals(OK)) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        return ResponseEntity.ok(userService.updateUser(updateRequest, authentication));
     }
 
     @GetMapping("/info-user")
@@ -90,8 +73,8 @@ public class UserController {
     }
 
     @GetMapping("/get-card-user")
-    public ResponseEntity<RestResponse<?>> findAllCardUser() {
-        return ResponseEntity.ok(userService.findAllCardUser());
+    public ResponseEntity<RestResponse<?>> findAllCardUser(Authentication authentication) {
+        return ResponseEntity.ok(userService.findAllCardUser(authentication));
     }
 
 }
