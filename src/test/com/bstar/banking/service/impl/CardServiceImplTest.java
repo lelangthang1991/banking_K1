@@ -463,9 +463,13 @@ class CardServiceImplTest {
 
     @Test
     void givenCardNumber_whenCardFindById_thenShouldReturnOkAndGetUserInfoSuccess() {
-        //givem
+        //given
+        User user = new User();
+        user.setFirstName("Nguyen");
+        user.setLastName("Hoàng Anh");
         Card card = new Card();
         card.setCardNumber("1234");
+        card.setUser(user);
         //when
         when(cardRepository.findById(Mockito.any())).thenReturn(Optional.of(card));
 

@@ -32,11 +32,11 @@ public interface UserService {
 
     RestResponse<?> userAdminCreate(SignupRequest userDTO);
 
-    RestResponse<?> userAdminUpdate(String email, UserDTO userDTO);
+    RestResponse<?> userAdminUpdate(String email, UserDTO userDTO, Authentication authentication);
 
     RestResponse<?> userAdminDisabled(String email);
 
-    RestResponse<?> userAdminDecentralization(DecentralizationDTO dto);
+    RestResponse<?> userAdminDecentralization(DecentralizationDTO dto, Authentication authentication);
 
-    RestResponse<?> findAllCardUser();
+    RestResponse<?> findAllCardUser(Authentication authentication);
 }

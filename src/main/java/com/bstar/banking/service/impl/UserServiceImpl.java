@@ -164,9 +164,9 @@ public class UserServiceImpl implements UserService {
             user.setRole(1);
             user.setIsActivated(true);
             userRepository.save(user);
-            return new RestResponse<>(OK, SUCCESSFUL_CARD_ACTIVATION);
+            return new RestResponse<>(OK, USER_ACTIVATE_SUCCESSFUL);
         }
-        return new RestResponse<>(BAD_REQUEST, CARD_ACTIVATION_FAILED);
+        throw new NotFoundException(BAD_REQUEST, CARD_ACTIVATE_FAILED);
     }
 
     @Override
@@ -211,12 +211,13 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(authentication.getName()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         if (!passwordEncoder.matches(changePasswordDTO.getPassword(), user.getPassword())) {
             throw new CompareException(PASSWORD_DOES_NOT_MATCH);
-        } else if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())) {
-            throw new CompareException(NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
-        } else {
-            user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
-            return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESSFUL);
         }
+        else if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())) {
+            throw new CompareException(NEW_PASSWORD_CAN_NOT_BE_THE_SAME_AS_THE_OLD_ONE);
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        userRepository.save(user);
+        return new RestResponse<>(OK, CHANGE_PASSWORD_SUCCESSFUL);
     }
 
     @Override
@@ -342,8 +343,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public RestResponse<?> userAdminUpdate(String email, UserDTO userDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public RestResponse<?> userAdminUpdate(String email, UserDTO userDTO, Authentication authentication) {
         String emailAdmin = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         if (userRepository.findByPhone(userDTO.getPhone()).isPresent()) {
@@ -370,8 +370,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public RestResponse<?> userAdminDecentralization(DecentralizationDTO dto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public RestResponse<?> userAdminDecentralization(DecentralizationDTO dto, Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findById(dto.getEmail()).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         user.setRole(dto.getRole());
@@ -382,8 +381,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public RestResponse<?> findAllCardUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public RestResponse<?> findAllCardUser(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(EMAIL_NOT_FOUND));
         List<CardDTO> cardDTOS = user.getCards().stream()

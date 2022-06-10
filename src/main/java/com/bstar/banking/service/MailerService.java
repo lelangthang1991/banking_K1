@@ -27,5 +27,5 @@ public interface MailerService {
 
     void sendWelcome(User card, String verifycode);
 
-    RestResponse<?> sendVerifyCode(String email);
+    RestResponse<?> sendVerifyCode(String email) throws MessagingException;
 }

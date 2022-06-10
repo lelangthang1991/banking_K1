@@ -144,10 +144,10 @@ public class CardServiceImpl implements CardService {
         card.setUpdateDate(new Date());
         card.setUpdatePerson(email);
         card.setLevel(1);
-        card.setDailyLimitAmount((double) 100000000);
-        card.setMonthlyLimitAmount((double) 1000000000);
-        card.setDailyAvailableTransfer((double) 100000000);
-        card.setMonthlyAvailableTransfer((double) 1000000000);
+        card.setDailyLimitAmount(100000000.00);
+        card.setMonthlyLimitAmount(1000000000.00);
+        card.setDailyAvailableTransfer(100000000.00);
+        card.setMonthlyAvailableTransfer(1000000000.00);
         card.setUser(user);
         cardRepository.save(card);
         return new RestResponse<>(OK,
