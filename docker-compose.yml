@@ -1,8 +1,8 @@
 version: '3.8'
 services:
-  db:
+  internal_database:
     image: mysql:8.0.23
-    container_name: db
+    container_name: internal_database
     networks:
       - banking-network
     cap_add:
@@ -16,8 +16,8 @@ services:
     ports:
       - "6603:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-      - mysql_config:/etc/mysql/conf.d
+      - ./mysql_data:/var/lib/mysql
+      - ./mysql_config:/etc/mysql/conf.d
       - ./banking.sql:/docker-entrypoint-initdb.d/init.sql
   app:
     container_name: banking-api
@@ -29,9 +29,9 @@ services:
       - "8099:8080"
     restart: always
     depends_on:
-      - db
+      - internal_database
     volumes:
-      - /opt/app:/app
+      - ./opt/app:/app
     networks:
       - banking-network
 volumes:
