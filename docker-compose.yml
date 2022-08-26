@@ -24,7 +24,7 @@ services:
     image: banking-api:v1.0.0
     build:
       context: ./
-      dockerfile: Dockerfile_Local
+      dockerfile: Dockerfile
     ports:
       - "8099:8080"
     restart: always
