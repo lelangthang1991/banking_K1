@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -30,9 +34,13 @@ public class User {
     private String address;
     private String phone;
     private Boolean isActivated;
+    @CreatedBy
     private String createPerson;
+    @LastModifiedBy
     private String updatePerson;
+    @LastModifiedDate
     private Date updateDate;
+    @CreatedDate
     private Date createDate;
 
     @JsonIgnore

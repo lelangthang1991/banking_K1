@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -28,7 +30,9 @@ public class Transaction {
     private String beneficiaryName;
     private String beneficiaryEmail;
     private String beneficiaryPhone;
+    @CreatedBy
     private String createPerson;
+    @CreatedDate
     private Date createDate;
     private Double balance;
     private Double fee;

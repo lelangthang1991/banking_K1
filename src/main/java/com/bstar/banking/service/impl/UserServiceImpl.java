@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.bstar.banking.common.JwtString.*;
@@ -118,12 +119,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public RestResponse<?> signupUser(SignupRequest signupRequest) {
-        User userEmail = userRepository.findById(signupRequest.getEmail()).orElse(null);
-        User userPhone = userRepository.findByPhone(signupRequest.getPhone()).orElse(null);
-        if (userEmail.getEmail() != null) {
+        Optional<User> userEmail = userRepository.findById(signupRequest.getEmail());
+        Optional<User> userPhone = userRepository.findByPhone(signupRequest.getPhone());
+        if (userEmail.isPresent()) {
             throw new CompareException(EMAIl_WAS_REGISTERED);
         }
-        if (userPhone.getPhone() != null) {
+        if (userPhone.isPresent()) {
             throw new CompareException(PHONE_WAS_REGISTERED);
         }
         if (!signupRequest.getPassword().equals(signupRequest.getConfirm())) {

@@ -3,6 +3,7 @@ package com.bstar.banking.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -14,8 +15,9 @@ import java.util.Date;
 @Table
 public class Session {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer sessionId;
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    private String sessionId;
     private String deviceType;
     private String ipAddress;
     private String refreshToken;

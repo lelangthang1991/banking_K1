@@ -139,7 +139,7 @@ public class TransactionImpl implements TransactionService {
         transaction.setStatus(true);
         transaction.setTransactionType(2);
         transaction.setBeneficiaryCardNumber(getCard.getCardNumber());
-        transaction.setBeneficiaryName(card.get().getUser().getFirstName());
+        transaction.setBeneficiaryName(card.map(value -> value.getUser().getFirstName()).orElse(null));
         transaction.setBeneficiaryEmail(getCard.getUser().getEmail());
         transaction.setBeneficiaryPhone(getCard.getUser().getPhone());
         transaction.setBody(getCard.getUser().getFirstName() + " " + getCard.getUser().getLastName() + " " + "Withdraw money");
@@ -168,10 +168,6 @@ public class TransactionImpl implements TransactionService {
                         getBeneficiaryCardNumber()).
                 orElseThrow(() -> new NotFoundException(CARD_NUMBER_NOT_FOUND));
 
-        Date currentDate = new Date();
-        Double monthlyLimit = transactionRepository.monthlyLimit(cardTransfer.getCardNumber(),
-                email, 3, currentDate.getMonth() + 1, currentDate.getYear() + 1900);
-
         Double fee = 0.0;
         if (cardTransfer.getIsActivated().equals(false)) {
             throw new CompareException(CARD_NOT_ACTIVATED);
@@ -191,16 +187,14 @@ public class TransactionImpl implements TransactionService {
         if (!transferMoneyDTO.getPinCode().equals(cardTransfer.getPinCode())) {
             throw new CompareException(PIN_CODE_DOES_NOT_MATCH);
         }
-
-        if (transferMoneyDTO.getAmount() + fee > cardTransfer.getBalance() && transferMoneyDTO.getAmount() + fee > cardTransfer.getDailyAvailableTransfer()) {
+        if (transferMoneyDTO.getAmount() + fee > cardTransfer.getBalance()) {
             throw new CompareException(BALANCE_IS_NOT_ENOUGH);
         }
-        if (monthlyLimit > cardTransfer.getMonthlyLimitAmount()) {
-            throw new CompareException(THE_MONTHLY_TRANSFER_EXCEEDED);
-        } else if ((transferMoneyDTO.getAmount() + fee) > (cardTransfer.getMonthlyLimitAmount() - monthlyLimit)) {
-            throw new CompareException(THE_MONTHLY_TRANSFER_EXCEEDED);
-        } else if ((transferMoneyDTO.getAmount() + fee) > cardTransfer.getDailyAvailableTransfer()) {
+        if ((transferMoneyDTO.getAmount() + fee) > (cardTransfer.getDailyAvailableTransfer())) {
             throw new CompareException(THE_DAILY_TRANSFER_EXCEEDED_TRY_AGAIN_THE_NEXT_DAY);
+        }
+        if (transferMoneyDTO.getAmount() + fee > cardTransfer.getMonthlyAvailableTransfer()) {
+            throw new CompareException(THE_MONTHLY_TRANSFER_EXCEEDED);
         }
 
         //transfer transaction
@@ -265,8 +259,6 @@ public class TransactionImpl implements TransactionService {
 
         if (StringUtils.isBlank(lDate.getSortField()) || StringUtils.isBlank(lDate.getSortDir())) {
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize());
-            String email = authentication.getName();
-            User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
             Page<Transaction> listPage = transactionRepository.listTransaction(lDate, page);
             List<TransactionResponse> listDTO = listPage.getContent()
                     .parallelStream()
@@ -281,8 +273,6 @@ public class TransactionImpl implements TransactionService {
             Sort sort = Sort.by(lDate.getSortField());
             sort = lDate.getSortDir().equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
             Pageable page = PageRequest.of(lDate.getPageNumber(), lDate.getPageSize(), sort);
-            String email = authentication.getName();
-            User user = userRepository.findById(email).orElseThrow(() -> new NotFoundException(GET_USER_EMAIL_NOT_FOUND));
             Page<Transaction> listPage = transactionRepository.listTransaction(lDate, page);
             List<TransactionDTO> listDTO = listPage.getContent()
                     .parallelStream()

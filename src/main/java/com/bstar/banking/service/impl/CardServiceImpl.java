@@ -12,6 +12,7 @@ import com.bstar.banking.model.response.ResponsePageCard;
 import com.bstar.banking.model.response.RestResponse;
 import com.bstar.banking.repository.CardRepository;
 import com.bstar.banking.repository.UserRepository;
+import com.bstar.banking.repository.specification.CardSpecifications;
 import com.bstar.banking.service.CardService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +27,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,8 +63,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public RestResponse<?> findCardByEmail(String email) {
-        List<CardDTO> cardDTOS = cardRepository.findCardByEmail(email)
-                .stream()
+        List<CardDTO> cardDTOS = cardRepository.findCardByEmail(email).stream()
                 .map(card -> modelMapper.map(card, CardDTO.class))
                 .collect(Collectors.toList());
         return new RestResponse<>(OK, GET_CARD_SUCCESS, cardDTOS);
@@ -139,10 +138,6 @@ public class CardServiceImpl implements CardService {
         card.setBalance((double) 0);
         card.setPinCode(registerDTO.getPinCode());
         card.setIsActivated(true);
-        card.setCreateDate(new Date());
-        card.setCreatePerson(email);
-        card.setUpdateDate(new Date());
-        card.setUpdatePerson(email);
         card.setLevel(1);
         card.setDailyLimitAmount(100000000.00);
         card.setMonthlyLimitAmount(1000000000.00);
@@ -170,10 +165,6 @@ public class CardServiceImpl implements CardService {
         card.setBalance((double) 0);
         card.setPinCode(registerDTO.getPinCode());
         card.setIsActivated(true);
-        card.setCreateDate(new Date());
-        card.setCreatePerson(email);
-        card.setUpdateDate(new Date());
-        card.setUpdatePerson(email);
         card.setUser(user);
         cardRepository.save(card);
         return new RestResponse<>(OK,
@@ -206,8 +197,8 @@ public class CardServiceImpl implements CardService {
     public RestResponse<?> findAllCardFiltered(FilterCardDTO filterCardDTO) {
         if (StringUtils.isBlank(filterCardDTO.getSortField()) || StringUtils.isBlank(filterCardDTO.getSortDir())) {
             Pageable pageable = PageRequest.of(filterCardDTO.getPageNumber(), filterCardDTO.getPageSize());
-            Page<Card> cards = cardRepository.findAllCardFiltered(filterCardDTO, pageable);
-//            Page<Card> cards = cardRepository.findAll(CardSpecifications.findAllCardFiltered(filterCardDTO), pageable);
+//            Page<Card> cards = cardRepository.findAllCardFiltered(filterCardDTO, pageable);
+            Page<Card> cards = cardRepository.findAll(CardSpecifications.findAllCardFiltered(filterCardDTO), pageable);
             List<CardDTO> cardDTOS = cards.stream()
                     .map(acc -> modelMapper.map(acc, CardDTO.class))
                     .collect(Collectors.toList());
@@ -240,8 +231,8 @@ public class CardServiceImpl implements CardService {
         String adminEmail = authentication.getName();
         Card card = cardRepository.findById(cardDTO.getCardNumber()).orElseThrow(() -> new NotFoundException(CARD_NUMBER_NOT_FOUND));
         card.setIsActivated(true);
-        card.setUpdateDate(new Date());
-        card.setUpdatePerson(adminEmail);
+//        card.setUpdateDate(new Date());
+//        card.setUpdatePerson(adminEmail);
         cardRepository.save(card);
         return new RestResponse<>(OK, CARD_ACTIVATE_SUCCESS);
     }
@@ -249,7 +240,7 @@ public class CardServiceImpl implements CardService {
     @Override
     public RestResponse<?> checkCardNumber(String cardNumber) {
         CheckCardNumberResponse cardNumberResponse = new CheckCardNumberResponse();
-        Card card = cardRepository.findById(cardNumber).orElseThrow(() -> new NotFoundException(CARD_NUMBER_NOT_FOUND));
+        Card card = cardRepository.findOne(CardSpecifications.findById(cardNumber)).orElseThrow(() -> new NotFoundException(CARD_NUMBER_NOT_FOUND));
         cardNumberResponse.setFirstName(card.getUser().getFirstName());
         cardNumberResponse.setLastName(card.getUser().getLastName());
         cardNumberResponse.setIsActivated(card.getIsActivated());

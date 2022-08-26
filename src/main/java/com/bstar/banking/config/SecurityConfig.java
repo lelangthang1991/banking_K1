@@ -1,5 +1,6 @@
 package com.bstar.banking.config;
 
+import com.bstar.banking.bean.AuditorAwareImpl;
 import com.bstar.banking.jwt.CustomAccessDeniedHandler;
 import com.bstar.banking.jwt.JwtAuthenticationEntryPoint;
 import com.bstar.banking.jwt.JwtRequestFilter;
@@ -7,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -22,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtRequestFilter jwtRequestFilter;
     private final UserDetailsService userDetailsService;
@@ -35,7 +39,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         http.authorizeRequests()
                 .antMatchers("/api/v1/admin/cards/**").hasAuthority("0")
-                .antMatchers( "/api/v1/users/login",
+                .antMatchers("/api/v1/users/login",
                         "/api/v1/users/send-mail",
                         "/api/v1/users/forgot-password",
                         "/api/v1/users//refresh-token",
@@ -88,5 +92,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE)
                 .setMatchingStrategy(MatchingStrategies.STRICT);
         return modelMapper;
+    }
+
+    @Bean
+    public AuditorAware<String> auditorProvider() {
+        return new AuditorAwareImpl();
     }
 }

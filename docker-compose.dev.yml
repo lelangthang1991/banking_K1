@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0.23
+    container_name: db
+    networks:
+      - banking-network
+    cap_add:
+      - ALL
+    restart: always
+    environment:
+      - MYSQL_DATABASE=banking
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=123
+      - MYSQL_ROOT_PASSWORD=123
+    ports:
+      - "6603:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - mysql_config:/etc/mysql/conf.d
+      - ./banking.sql:/docker-entrypoint-initdb.d/init.sql
+  app:
+    container_name: banking-api
+    image: banking-api:v1.0.0
+    build:
+      context: ./
+      dockerfile: Dockerfile_Local
+    ports:
+      - "8099:8080"
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - /opt/app:/app
+    networks:
+      - banking-network
+volumes:
+  mysql_data:
+  mysql_config:
+networks:
+  banking-network:
+    driver: bridge

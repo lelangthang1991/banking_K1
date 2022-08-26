@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, String>, JpaSpecificationExecutor<Card> {
@@ -22,7 +22,7 @@ public interface CardRepository extends JpaRepository<Card, String>, JpaSpecific
     Page<Card> findAllCardFiltered(@Param("cardDTO") FilterCardDTO cardDTO, Pageable pageable);
 
     @Query("SELECT c FROM Card c WHERE c.user.email = ?1")
-    Optional<Card> findCardByEmail(String email);
+    List<Card> findCardByEmail(String email);
 
 
 }
