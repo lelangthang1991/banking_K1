@@ -34,10 +34,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import static com.bstar.banking.common.MailerString.SEND_MAIL_FAILURE;
 import static com.bstar.banking.common.MailerString.SEND_MAIL_SUCCESS;
@@ -75,7 +72,7 @@ public class GmailServiceImpl implements MailerService {
         this.userRepository = userRepository;
     }
 
-    public static Properties loadProperties(String fileName) {
+    public static Properties loadProperties(String fileName) throws IOException {
         try (InputStream input = GmailServiceImpl.class.getClassLoader().getResourceAsStream(fileName)) {
             Properties prop = new Properties();
             if (input == null) {
@@ -85,7 +82,7 @@ public class GmailServiceImpl implements MailerService {
             return prop;
         } catch (IOException ex) {
             ex.printStackTrace();
-            return null;
+            throw new IOException(ex.getMessage());
         }
     }
 
